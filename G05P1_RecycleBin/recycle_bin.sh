@@ -1,10 +1,18 @@
 #!/bin/bash
 
 #################################################
+<<<<<<< HEAD
 # Linux Recycle Bin Simulation
 # Author: Pedro Gonçalves 126463 & David Monteiro
 # Date: 
 # Description: Shell-based recycle bin system
+=======
+# Script Header Comment
+# Authors: Pedro Gonçalves 126463 & David Monteiro 125793
+# Date: 29/10/25
+# Description: Brief description
+# Version: 1.0
+>>>>>>> eeda16b07b771fe57a340135df9acdfffce64955
 #################################################
 
 # Global Configuration
