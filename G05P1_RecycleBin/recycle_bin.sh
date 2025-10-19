@@ -1,21 +1,23 @@
 #!/bin/bash
+
 #################################################
-# Script Header Comment
-# Authors: Pedro Gonçalves 126463 & David Monteiro 125793
+# Linux Recycle Bin Simulation
+# Author: Pedro Gonçalves 126463 & David Monteiro
 # Date: 
-# Description: Brief description
-# Version: 1.0
+# Description: Shell-based recycle bin system
 #################################################
 
-# Global Variables (ALL CAPS)
-RECYCLE_BIN_DIR="$HOME/.recycle_bin"
+# Global Configuration
+RECYCLE_BIN_DIR="$HOME/Projeto01_SO/recycle_bin" ####### COLOCAR AQUI UM PONTO (ANTES DE recycle_bin) QUANDO FOR PARA ENTREGAR!!
+FILES_DIR="$RECYCLE_BIN_DIR/files"
 METADATA_FILE="$RECYCLE_BIN_DIR/metadata.db"
+CONFIG_FILE="$RECYCLE_BIN_DIR/config"
 
-# Color Codes (optional but recommended)
+# Color codes for output (optional)
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
-NC='\033[0m'
+NC='\033[0m' # No Color
 
 #################################################
 # Function: initialize_recyclebin
@@ -24,44 +26,39 @@ NC='\033[0m'
 #################################################
 
 initialize_recyclebin() {
-
-    local dir="$HOME/Projeto01_SO/recycle_bin" ####### COLOCAR AQUI UM PONTO (ANTES DE recycle_bin) QUANDO FOR PARA ENTREGAR!!
-    local files_dir="$dir/files"
-    local metadata="$dir/metadata.db"
-    local config="$dir/config"
-    local log_file="$dir/recyclebin.log"
     
-    if [ ! -d "$dir" ]; then
+    if [ ! -d "$RECYCLE_BIN_DIR" ]; then
     
         echo "A recycle bin não existe atualmente."
         echo "A inicializar recycle bin..."
-        mkdir -p "$files_dir" || { echo "Ocorreu um erro ao inicializar a recycle bin."; return 1; }
+        mkdir -p "$FILES_DIR" || { echo "${RED}Ocorreu um erro ao inicializar a recycle bin."; return 1; }
         
     fi
+
+    if [ ! -f "$METADATA_FILE" ]; then
     
-    if [ ! -f "$metadata" ]; then
-    
-        echo "ID,ORIGINAL_NAME,ORIGINAL_PATH,DELETION_DATE,FILE_SIZE,FILE_TYPE,PERMISSIONS,OWNER" > "$metadata"
+        echo "ID,ORIGINAL_NAME,ORIGINAL_PATH,DELETION_DATE,FILE_SIZE,FILE_TYPE,PERMISSIONS,OWNER" > "$METADATA_FILE"
         
     fi
+
+    if [ ! -f "$CONFIG_FILE" ]; then
     
-    if [ ! -f "$config" ]; then
-    
-        echo "MAX_SIZE_MB=1024" > "$config" 
-        echo "RETENTION_DAYS=30" >> "$config" 
+        echo "MAX_SIZE_MB=1024" > "$CONFIG_FILE"
+        echo "RETENTION_DAYS=30" >> "$CONFIG_FILE"
         
     fi
+
+    if [ ! -f "$LOG_FILE" ]; then
     
-    if [ ! -f "$log_file" ]; then
-    
-        touch "$log_file"
+        touch "$LOG_FILE"
         
     fi
+
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - Recycle bin inicializada." >> "$LOG_FILE"
     
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - Recycle bin inicializada." >> "$log_file"
-    
-    echo "A recycle bin foi inicializada com sucesso no diretório: $dir!"
+    echo "A recycle bin foi inicializada com sucesso no diretório: $RECYCLE_BIN_DIR!"
     return 0
+    
 }
 
 #################################################
@@ -72,9 +69,11 @@ initialize_recyclebin() {
 #################################################
 
 generate_unique_id() {
+
     local timestamp=$(date +%s)
     local random=$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 6 | head -n 1)
     echo "${timestamp}_${random}"
+    
 }
 
 #################################################
@@ -85,7 +84,7 @@ generate_unique_id() {
 #################################################
 
 delete_file() {
-    # TODO: Implement this function
+
     local file_path="$1"
 
     # Validate input
