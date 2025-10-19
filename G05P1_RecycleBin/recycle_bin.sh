@@ -1,18 +1,11 @@
 #!/bin/bash
 
 #################################################
-<<<<<<< HEAD
-# Linux Recycle Bin Simulation
-# Author: Pedro Gonçalves 126463 & David Monteiro
-# Date: 
-# Description: Shell-based recycle bin system
-=======
 # Script Header Comment
 # Authors: Pedro Gonçalves 126463 & David Monteiro 125793
 # Date: 29/10/25
 # Description: Brief description
 # Version: 1.0
->>>>>>> eeda16b07b771fe57a340135df9acdfffce64955
 #################################################
 
 # Global Configuration
@@ -92,28 +85,122 @@ generate_unique_id() {
 #################################################
 
 delete_file() {
-
-    local file_path="$1"
-
-    # Validate input
-    if [ -z "$file_path" ]; then
-        echo -e "${RED}Error: No file specified${NC}"
+    
+    if [ $# -eq 0 ]; then
+    
+        echo -e "${YELLOW}Deve ser digitado o nome ou diretório de pelo menos um ficheiro.${NC}"
         return 1
+        
     fi
-
-    # Check if file exists
-    if [ ! -e "$file_path" ]; then
-        echo -e "${RED}Error: File '$file_path' does not exist${NC}"
-        return 1
+    
+    if [ ! -d "$RECYCLE_BIN_DIR" ]; then
+    
+        initialize_recyclebin
+        
     fi
+    
+    for file in "$@"; do
+    
+        if [ ! -e "$file" ]; then
+        
+            echo -e "${YELLOW}O ficheiro/diretório: "$file" ; não existe e não pode ser apagado. ${NC}"
+            continue
+            
+        fi
+        
+        if [[ "$file" == "$RECYCLE_BIN_DIR"* ]]; then
+        
+            echo -e "${RED}Erro: Não podes eliminar a recycle bin.${NC}"
+            continue
+            
+        fi
+        
+        local parent_dir
+        parent_dir=$(dirname "$file")
+        
+        # verifica se o utilizador tem permissões de escrita (para remover entradas) e execução (para aceder ao conteúdo)
+        # no diretório pai, que são as permissões exigidas pelo Linux para apagar ou mover um ficheiro
 
-    # Your code here
-    # Hint: Get file metadata using stat command
-    # Hint: Generate unique ID
-    # Hint: Move file to FILES_DIR with unique ID
-    # Hint: Add entry to metadata file
-    echo "Delete function called with: $file_path"
+        if [ ! -w "$parent_dir" ] || [ ! -x "$parent_dir" ]; then
+        
+            echo -e "${RED}Erro: Sem permissões no diretório que contém '$file'.${NC}"
+            continue
+            
+        fi
+        
+        local id 
+        id=$(generate_unique_id)
+        
+        local original_name
+        original_name=$(basename "$file")
+        
+        local original_path
+        original_path=$(realpath "$file")
+        
+        local deletion_date
+        deletion_date=$(date "+%Y-%m-%d %H:%M:%S")
+        
+        local file_size
+        file_size=$(stat -c %s "$file")
+        
+        local file_type
+        if [ -d "$file" ]; then
+        
+            file_type="directory"
+            
+        else
+        
+            file_type="file"
+            
+        fi
+        
+        local permissions
+        permissions=$(stat -c %a "$file")
+        
+        local owner
+        owner=$(stat -c %U:%G "$file")
+        
+        local dest_path="$FILES_DIR/$id"
+        
+        available_kb=$(df --output=avail "$RECYCLE_BIN_DIR" | tail -n 1) # verifica o espaço que ainda existe em KB
+        file_kb=$((file_size / 1024)) # transforma tudo de Bytes para KiloBytes
+
+        if [ "$file_kb" -gt "$available_kb" ]; then
+        
+            echo -e "${RED}Erro: Espaço insuficiente para mover '$file'.${NC}"
+            continue
+            
+        fi
+
+        if [ "$file_type" = "directory" ]; then
+        
+            echo -e "${YELLOW}A mover diretório de forma recursiva:${NC} $file"
+            
+        fi
+
+        mv "$file" "$dest_path" # move de forma recursiva, porque envia tudo o que estiver dentro do diretório para o recycle bin como sendo apenas um item com um id único
+        move_status=$?
+
+        if [ $move_status -ne 0 ]; then
+        
+            echo -e "${RED}Erro: Falha ao mover '$file'.${NC}"
+            continue
+            
+        else
+        
+            echo -e "${GREEN}Ficheiro movido com sucesso:${NC} $file"
+            
+        fi
+        
+        echo "$id,$original_name,$original_path,$deletion_date,$file_size,$file_type,$permissions,$owner" >> "$METADATA_FILE"
+        
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - Deleted: $original_path -> $dest_path" >> "$LOG_FILE"
+        
+        echo -e "${GREEN}Movido para a recycle bin:${NC} $original_name"
+    
+    done     
     return 0
+    
 }
 
 #################################################
