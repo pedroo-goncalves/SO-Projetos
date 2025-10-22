@@ -13,6 +13,7 @@ RECYCLE_BIN_DIR="$HOME/Projeto01_SO/recycle_bin" ####### COLOCAR AQUI UM PONTO (
 FILES_DIR="$RECYCLE_BIN_DIR/files"
 METADATA_FILE="$RECYCLE_BIN_DIR/metadata.db"
 CONFIG_FILE="$RECYCLE_BIN_DIR/config"
+LOG_FILE="$RECYCLE_BIN_DIR/log.txt"
 
 # Color codes for output (optional)
 RED='\033[0;31m'
@@ -31,16 +32,17 @@ initialize_recyclebin() {
     if [ ! -d "$RECYCLE_BIN_DIR" ]; then
     
         echo "A recycle bin não existe atualmente."
-        echo "A inicializar recycle bin..."
         mkdir -p "$FILES_DIR" || { echo "${RED}Ocorreu um erro ao inicializar a recycle bin."; return 1; }
         
     fi
 
+
     if [ ! -f "$METADATA_FILE" ]; then
     
         echo "ID,ORIGINAL_NAME,ORIGINAL_PATH,DELETION_DATE,FILE_SIZE,FILE_TYPE,PERMISSIONS,OWNER" > "$METADATA_FILE"
-        
+
     fi
+
 
     if [ ! -f "$CONFIG_FILE" ]; then
     
@@ -49,15 +51,17 @@ initialize_recyclebin() {
         
     fi
 
+
     if [ ! -f "$LOG_FILE" ]; then
     
         touch "$LOG_FILE"
         
     fi
-
+    
+    
     echo "$(date '+%Y-%m-%d %H:%M:%S') - Recycle bin inicializada." >> "$LOG_FILE"
     
-    echo "A recycle bin foi inicializada com sucesso no diretório: $RECYCLE_BIN_DIR!"
+    echo "A recycle bin foi inicializada com sucesso no diretório: $RECYCLE_BIN_DIR"
     return 0
     
 }
@@ -131,19 +135,25 @@ delete_file() {
         local id 
         id=$(generate_unique_id)
         
+        
         local original_name
         original_name=$(basename "$file")
+        
         
         local original_path
         original_path=$(realpath "$file")
         
+        
         local deletion_date
         deletion_date=$(date "+%Y-%m-%d %H:%M:%S")
+        
         
         local file_size
         file_size=$(stat -c %s "$file")
         
         local file_type
+        
+        
         if [ -d "$file" ]; then
         
             file_type="directory"
@@ -154,16 +164,20 @@ delete_file() {
             
         fi
         
+        
         local permissions
         permissions=$(stat -c %a "$file")
         
+        
         local owner
         owner=$(stat -c %U:%G "$file")
+        
         
         local dest_path="$FILES_DIR/$id"
         
         available_kb=$(df --output=avail "$RECYCLE_BIN_DIR" | tail -n 1) # verifica o espaço que ainda existe em KB
         file_kb=$((file_size / 1024)) # transforma tudo de Bytes para KiloBytes
+
 
         if [ "$file_kb" -gt "$available_kb" ]; then
         
@@ -172,29 +186,35 @@ delete_file() {
             
         fi
 
+
         if [ "$file_type" = "directory" ]; then
         
             echo -e "${YELLOW}A mover diretório de forma recursiva:${NC} $file"
             
         fi
 
-        mv "$file" "$dest_path" # move de forma recursiva, porque envia tudo o que estiver dentro do diretório para o recycle bin como sendo apenas um item com um id único
+        
+        # move de forma recursiva, porque envia tudo o que estiver dentro do diretório para o recycle bin como sendo apenas um item com um id único
+        mv "$file" "$dest_path" 
         move_status=$?
+        
 
         if [ $move_status -ne 0 ]; then
         
-            echo -e "${RED}Erro: Falha ao mover '$file'.${NC}"
+            echo -e "${RED}Erro: Falha ao mover '$file'. ${NC}"
             continue
             
         else
         
-            echo -e "${GREEN}Ficheiro movido com sucesso:${NC} $file"
+            echo -e "${GREEN}Ficheiro movido com sucesso: ${NC} $file"
             
         fi
         
-        echo "$id,$original_name,$original_path,$deletion_date,$file_size,$file_type,$permissions,$owner" >> "$METADATA_FILE"
         
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - Deleted: $original_path -> $dest_path" >> "$LOG_FILE"
+        echo "$id,$original_name,$original_path,$deletion_date,$file_size,$file_type,$permissions,$owner" >> "$METADATA_FILE"
+
+        
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - Apagado: $original_path -> $dest_path" >> "$LOG_FILE"
         
         echo -e "${GREEN}Movido para a recycle bin:${NC} $original_name"
     
@@ -211,12 +231,115 @@ delete_file() {
 #################################################
 
 list_recycled() {
-    # TODO: Implement this function
-    echo "=== Recycle Bin Contents ==="
-    # Your code here
-    # Hint: Read metadata file and format output
-    # Hint: Use printf for formatted table
-    # Hint: Skip header line
+
+    printf '%s\n' "-----------------------------=== Recycle Bin Contents ===--------------------------------"
+    printf '%s\n' "-----------------------------------------------------------------------------------------"
+    
+    if [ "$#" -gt 1 ]; then
+    
+        echo -e "${RED}Erro: O comando foi digitado incorretamente.${NC}"
+        echo "Uso correto: ./recycle_bin.sh list --detailed"
+        return 1
+    
+    fi
+    
+    
+    local modo="nao_detalhado"
+
+    if [ -z "$1" ]; then
+    
+        modo="nao_detalhado"
+        
+    elif [ "$1" = "--detailed" ]; then
+    
+        modo="detalhado"
+        
+    else
+    
+        echo -e "${RED}Erro: Argumento inválido: $1${NC}"
+        echo "Uso correto: ./recycle_bin.sh list [--detailed]"
+        return 1
+        
+    fi
+    
+    
+    local total_files=0
+    local total_size=0
+    
+    if [ "$modo" = "nao_detalhado" ]; then
+    
+        linha=0
+        
+        printf "%-25s %-25s %-20s %-10s\n" "ID" "NOME" "DATA" "TAMANHO (Bytes)"
+        printf "%-25s %-25s %-20s %-10s\n" "-------------------------" "-------------------------" "--------------------" "----------------"
+        
+        while IFS=',' read -r id name path date size type perms owner; do
+            
+            ((linha++))
+            [ $linha -eq 1 ] && continue
+            printf "%-25s %-25s %-20s %-10s\n" "$id" "$name" "$date" "$size"
+            
+            ((total_files++))
+            ((total_size+=size))
+            
+        done < "$METADATA_FILE"
+
+    else
+
+        linha=0
+        total_files=0
+        total_size=0
+
+        printf "%-20s %-20s %-50s %-20s %10s %-12s %-12s %-20s\n" \
+        "ID" "NOME" "CAMINHO ORIGINAL" "DATA" "TAM (B)" "TIPO" "PERMISSÕES" "OWNER"
+        printf "%-20s %-20s %-50s %-20s %10s %-12s %-12s %-20s\n" \
+        "--------------------" "--------------------" "--------------------------------------------------" "--------------------" "----------" "------------" "------------" "--------------------"
+
+        while IFS=',' read -r id name path date size type perms owner; do
+
+            ((linha++))
+            [ $linha -eq 1 ] && continue
+
+            printf "%-20s %-20s %-50s %-20s %-10s %-12s %-12s %-20s\n" \
+            "$id" "$name" "$path" "$date" "$size" "$type" "$perms" "$owner"
+
+            ((total_files++))
+            ((total_size+=size))
+
+        done < "$METADATA_FILE"
+        
+    fi
+
+    
+    
+    # este trecho de código, vai escolher a unidade de armazenamento mais adequada para o size total dos ficheiros que estiverem na recycle bin:
+    
+    local human_readable_size=$total_size
+    local unit="B"
+
+    if [ $total_size -ge 1073741824 ]; then
+    
+        human_readable_size=$((total_size / 1073741824))
+        unit="GB"
+        
+    elif [ $total_size -ge 1048576 ]; then
+    
+        human_readable_size=$((total_size / 1048576))
+        unit="MB"
+        
+    elif [ $total_size -ge 1024 ]; then
+    
+        human_readable_size=$((total_size / 1024))
+        unit="KB"
+        
+    fi
+
+    echo ""
+    printf '%s\n' "-----------------------------------------------------------------------------------------"
+    printf "Total de ficheiros: %d\n" "$total_files"
+    printf "Tamanho total: %s %s\n" "$human_readable_size" "$unit"
+    printf '%s\n' "-----------------------------------------------------------------------------------------"
+    
     return 0
 }
 
@@ -314,17 +437,19 @@ EOF
 #################################################
 
 main() {
-    # Initialize recycle bin
-    initialize_recyclebin
 
     # Parse command line arguments
     case "$1" in
+        init)
+            initialize_recyclebin
+            ;;
         delete)
             shift
             delete_file "$@"
             ;;
         list)
-            list_recycled
+            shift
+            list_recycled "$@"
             ;;
         restore)
             restore_file "$2"
