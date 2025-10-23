@@ -35,7 +35,14 @@ initialize_recyclebin() {
         mkdir -p "$FILES_DIR" || { echo "${RED}Ocorreu um erro ao inicializar a recycle bin."; return 1; }
         
     fi
-
+    
+    if [ -d "$RECYCLE_BIN_DIR" ]; then
+    
+        echo -e"${RED}A recycle bin já existe.${NC}"
+        return 1;
+        
+    fi
+    
 
     if [ ! -f "$METADATA_FILE" ]; then
     
