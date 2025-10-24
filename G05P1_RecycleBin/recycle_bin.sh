@@ -36,13 +36,6 @@ initialize_recyclebin() {
         
     fi
     
-    if [ -d "$RECYCLE_BIN_DIR" ]; then
-    
-        echo -e"${RED}A recycle bin já existe.${NC}"
-        return 1;
-        
-    fi
-    
 
     if [ ! -f "$METADATA_FILE" ]; then
     
@@ -96,71 +89,68 @@ generate_unique_id() {
 #################################################
 
 delete_file() {
-    
+
     if [ $# -eq 0 ]; then
     
         echo -e "${YELLOW}Deve ser digitado o nome ou diretório de pelo menos um ficheiro.${NC}"
         return 1
         
     fi
-    
+
+
     if [ ! -d "$RECYCLE_BIN_DIR" ]; then
     
         initialize_recyclebin
         
     fi
-    
+
+
     for file in "$@"; do
-    
+
         if [ ! -e "$file" ]; then
         
-            echo -e "${YELLOW}O ficheiro/diretório: "$file" ; não existe e não pode ser apagado. ${NC}"
+            echo -e "${YELLOW}O ficheiro/diretório '$file' não existe e não pode ser apagado.${NC}"
+            echo ""
             continue
             
         fi
-        
+
+
         if [[ "$file" == "$RECYCLE_BIN_DIR"* ]]; then
         
             echo -e "${RED}Erro: Não podes eliminar a recycle bin.${NC}"
+            echo ""
             continue
             
         fi
-        
+
+
         local parent_dir
         parent_dir=$(dirname "$file")
-        
-        # verifica se o utilizador tem permissões de escrita (para remover entradas) e execução (para aceder ao conteúdo)
-        # no diretório pai, que são as permissões exigidas pelo Linux para apagar ou mover um ficheiro
 
-        if [ ! -w "$parent_dir" ] || [ ! -x "$parent_dir" ]; then
+        # verifica permissões no diretório e no ficheiro
+        if [ ! -w "$parent_dir" ] || [ ! -x "$parent_dir" ] || [ ! -w "$file" ]; then
         
-            echo -e "${RED}Erro: Sem permissões no diretório que contém '$file'.${NC}"
+            echo -e "${RED}Erro: Sem permissões suficientes para apagar '$file'.${NC}"
+            echo ""     
             continue
             
         fi
-        
-        local id 
+
+
+        local id
         id=$(generate_unique_id)
         
-        
-        local original_name
-        original_name=$(basename "$file")
-        
-        
-        local original_path
-        original_path=$(realpath "$file")
-        
-        
-        local deletion_date
-        deletion_date=$(date "+%Y-%m-%d %H:%M:%S")
-        
-        
-        local file_size
-        file_size=$(stat -c %s "$file")
-        
+        local original_name=$(basename "$file")
+        local original_path=$(realpath "$file")
+        local deletion_date=$(date "+%Y-%m-%d %H:%M:%S")
+        local file_size=$(stat -c %s "$file")
+        local permissions=$(stat -c %a "$file")
+        local owner=$(stat -c %U:%G "$file")
+        local dest_path="$FILES_DIR/$id"
         local file_type
-        
-        
+
+
         if [ -d "$file" ]; then
         
             file_type="directory"
@@ -170,22 +160,12 @@ delete_file() {
             file_type="file"
             
         fi
-        
-        
-        local permissions
-        permissions=$(stat -c %a "$file")
-        
-        
-        local owner
-        owner=$(stat -c %U:%G "$file")
-        
-        
-        local dest_path="$FILES_DIR/$id"
-        
-        available_kb=$(df --output=avail "$RECYCLE_BIN_DIR" | tail -n 1) # verifica o espaço que ainda existe em KB
-        file_kb=$((file_size / 1024)) # transforma tudo de Bytes para KiloBytes
 
 
+        # verifica espaço disponível
+        available_kb=$(df --output=avail "$RECYCLE_BIN_DIR" | tail -n 1)
+        file_kb=$((file_size / 1024))
+        
         if [ "$file_kb" -gt "$available_kb" ]; then
         
             echo -e "${RED}Erro: Espaço insuficiente para mover '$file'.${NC}"
@@ -194,41 +174,65 @@ delete_file() {
         fi
 
 
-        if [ "$file_type" = "directory" ]; then
+        # apagar os diretorios de forma recursiva:
         
-            echo -e "${YELLOW}A mover diretório de forma recursiva:${NC} $file"
+        if [ -d "$file" ]; then
+        
+            echo -e "${YELLOW}A apagar diretório de forma recursiva:${NC} $file"
+            echo ""
             
-        fi
+            while IFS= read -r subitem; do
+            
+                local sub_id=$(generate_unique_id)
+                local sub_name=$(basename "$subitem")
+                local sub_path=$(realpath "$subitem")
+                local sub_date=$(date "+%Y-%m-%d %H:%M:%S")
+                local sub_size=$(stat -c %s "$subitem")
+                local sub_perms=$(stat -c %a "$subitem")
+                local sub_owner=$(stat -c %U:%G "$subitem")
 
-        
-        # move de forma recursiva, porque envia tudo o que estiver dentro do diretório para o recycle bin como sendo apenas um item com um id único
-        mv "$file" "$dest_path" 
-        move_status=$?
-        
+                if [ -d "$subitem" ]; then
+                
+                    sub_type="directory"
+                    
+                else
+                
+                    sub_type="file"
+                    
+                fi
 
-        if [ $move_status -ne 0 ]; then
-        
-            echo -e "${RED}Erro: Falha ao mover '$file'. ${NC}"
+                sub_dest="$FILES_DIR/$sub_id"
+                mv "$subitem" "$sub_dest"
+
+                echo "$sub_id,$sub_name,$sub_path,$sub_date,$sub_size,$sub_type,$sub_perms,$sub_owner" >> "$METADATA_FILE"
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - Apagado: $sub_path -> $sub_dest" >> "$LOG_FILE"
+                
+            done < <(find "$file" -depth)
+
+
+            rm -rf "$file"
+            echo -e "${GREEN}Diretório movido para a recycle bin:${NC} $original_name"
             continue
-            
-        else
-        
-            echo -e "${GREEN}Ficheiro movido com sucesso: ${NC} $file"
-            
-        fi
-        
-        
-        echo "$id,$original_name,$original_path,$deletion_date,$file_size,$file_type,$permissions,$owner" >> "$METADATA_FILE"
 
-        
+        fi
+
+
+        if ! mv "$file" "$dest_path"; then
+            echo -e "${RED}Erro: Falha ao mover '$file'.${NC}"
+            echo ""
+            continue
+        fi
+
+
+        echo "$id,$original_name,$original_path,$deletion_date,$file_size,$file_type,$permissions,$owner" >> "$METADATA_FILE"
         echo "$(date '+%Y-%m-%d %H:%M:%S') - Apagado: $original_path -> $dest_path" >> "$LOG_FILE"
-        
-        echo -e "${GREEN}Movido para a recycle bin:${NC} $original_name"
-    
-    done     
+        echo -e "${GREEN}Movido com sucesso para a recycle bin:${NC} $original_name"
+
+    done
+
     return 0
-    
 }
+
 
 #################################################
 # Function: list_recycled
@@ -297,17 +301,17 @@ list_recycled() {
         total_files=0
         total_size=0
 
-        printf "%-20s %-20s %-50s %-20s %10s %-12s %-12s %-20s\n" \
+        printf "%-20s %-20s %-55s %-20s %10s %-12s %-12s %-20s\n" \
         "ID" "NOME" "CAMINHO ORIGINAL" "DATA" "TAM (B)" "TIPO" "PERMISSÕES" "OWNER"
-        printf "%-20s %-20s %-50s %-20s %10s %-12s %-12s %-20s\n" \
-        "--------------------" "--------------------" "--------------------------------------------------" "--------------------" "----------" "------------" "------------" "--------------------"
+        printf "%-20s %-20s %-55s %-20s %10s %-12s %-12s %-20s\n" \
+        "--------------------" "--------------------" "-------------------------------------------------------" "--------------------" "----------" "------------" "------------" "--------------------"
 
         while IFS=',' read -r id name path date size type perms owner; do
 
             ((linha++))
             [ $linha -eq 1 ] && continue
 
-            printf "%-20s %-20s %-50s %-20s %-10s %-12s %-12s %-20s\n" \
+            printf "%-20s %-20s %-55s %-20s %-10s %-12s %-12s %-20s\n" \
             "$id" "$name" "$path" "$date" "$size" "$type" "$perms" "$owner"
 
             ((total_files++))
@@ -318,8 +322,9 @@ list_recycled() {
     fi
 
     
-    
+    #TODO adicionar ao README que foi usada ai para determinar a unidade de medida adequada.
     # este trecho de código, vai escolher a unidade de armazenamento mais adequada para o size total dos ficheiros que estiverem na recycle bin:
+    #############################################################
     
     local human_readable_size=$total_size
     local unit="B"
@@ -340,8 +345,9 @@ list_recycled() {
         unit="KB"
         
     fi
-
-    echo ""
+    
+    ##############################################################
+    
     printf '%s\n' "-----------------------------------------------------------------------------------------"
     printf "Total de ficheiros: %d\n" "$total_files"
     printf "Tamanho total: %s %s\n" "$human_readable_size" "$unit"
@@ -437,6 +443,92 @@ EOF
 }
 
 #################################################
+# Function: preview_file
+# Description: Displays the first 10 lines of the selected file in the recycle bin.
+# Parameters: None
+# Returns: 1 if not sucessful, 0 if sucessful
+#################################################
+
+preview_file(){
+
+    if [ ! -d "$RECYCLE_BIN_DIR" ]; then
+    
+        echo -e "${RED}A recycle bin não existe atualmente e deve ser criada antes de poder dar preview.${NC}"
+        return 1
+        
+    fi
+    
+    
+    if [ $# -ne 1 ]; then
+    
+        echo -e "${RED}Deve ser inserido apenas o id do ficheiro na recycle bin como argumento.${NC}"
+        return 1
+        
+    fi
+    
+    
+    local file_id=$1
+    local linha_metadata=$(grep "^$file_id," "$METADATA_FILE")
+    
+    if [ -z "$linha_metadata" ]; then
+    
+        echo -e "${RED}Erro: ID '$file_id' não encontrado na recycle bin.${NC}"
+        return 1
+        
+    fi
+    
+    
+    IFS=',' read -r id name path date size type perms owner <<< "$linha_metadata"
+    local file_path="$FILES_DIR/$id"
+    
+    
+    if [ -d "$file_path" ]; then
+    
+        echo -e "${YELLOW}'$name' é um diretório, não um ficheiro.${NC}"
+        return 0
+        
+    fi
+
+    
+    if [ ! -e "$file_path" ]; then
+    
+        echo -e "${RED}Erro: Ficheiro '$name' não encontrado no diretório da recycle bin.${NC}"
+        return 1
+        
+    fi
+    
+    
+    if [ ! -s "$file_path" ]; then
+    
+        echo -e "${YELLOW}O ficheiro está vazio.${NC}"
+        return 0
+        
+    fi
+
+    
+    echo -e "${GREEN}Pré-visualizar ficheiro:${NC} $name"
+    echo "-----------------------------------------------"
+
+    file_type=$(file "$file_path")
+
+    case "$file_type" in
+    
+        *text*)
+            head -n 10 "$file_path"
+            ;;
+            
+        *)
+            echo "$file_type"
+            ;;
+            
+    esac
+
+
+    echo "-----------------------------------------------"
+    return 0
+}
+
+#################################################
 # Function: main
 # Description: Main program logic
 # Parameters: Command line arguments
@@ -450,30 +542,43 @@ main() {
         init)
             initialize_recyclebin
             ;;
+            
         delete)
             shift
             delete_file "$@"
             ;;
+            
         list)
             shift
             list_recycled "$@"
             ;;
+            
+        preview)
+            shift
+            preview_file "$@"
+            ;;
+            
         restore)
             restore_file "$2"
             ;;
+            
         search)
             search_recycled "$2"
             ;;
+            
         empty)
             empty_recyclebin
             ;;
+            
         help|--help|-h)
             display_help
             ;;
+            
         *)
             echo "Invalid option. Use 'help' for usage information."
             exit 1
             ;;
+            
     esac
 }
 
