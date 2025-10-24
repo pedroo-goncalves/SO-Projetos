@@ -30,8 +30,9 @@ NC='\033[0m' # No Color
 initialize_recyclebin() {
     
     if [ ! -d "$RECYCLE_BIN_DIR" ]; then
-    
-        echo "A recycle bin não existe atualmente."
+        
+        echo ""
+        echo -e "${YELLOW}A recycle bin não existe atualmente.${NC}"
         mkdir -p "$FILES_DIR" || { echo "${RED}Ocorreu um erro ao inicializar a recycle bin."; return 1; }
         
     fi
@@ -61,7 +62,11 @@ initialize_recyclebin() {
     
     echo "$(date '+%Y-%m-%d %H:%M:%S') - Recycle bin inicializada." >> "$LOG_FILE"
     
-    echo "A recycle bin foi inicializada com sucesso no diretório: $RECYCLE_BIN_DIR"
+    echo ""
+    echo -e "${GREEN}A recycle bin foi inicializada com sucesso no diretório: $RECYCLE_BIN_DIR ${NC}"
+    echo ""
+    echo -e "${RED}Bem vindo à recycle bin, digite o comando: './recycle_bin.sh help' para obter ajuda!${NC}"
+    echo ""
     return 0
     
 }
@@ -420,26 +425,35 @@ search_recycled() {
 #################################################
 
 display_help() {
-    cat << EOF
-Linux Recycle Bin - Usage Guide
-SYNOPSIS:
-$0 [OPTION] [ARGUMENTS]
-OPTIONS:
-  delete <file>       Move file/directory to recycle bin
-  list                List all items in recycle bin
-  restore <id>        Restore file by ID
-  search <pattern>    Search for files by name
-  empty               Empty recycle bin permanently
-  help                Display this help message
 
-EXAMPLES:
-  $0 delete myfile.txt
-  $0 list
-  $0 restore 1696234567_abc123
-  $0 search "*.pdf"
-  $0 empty
-EOF
+    echo ""
+    echo -e "${GREEN}==================== Recycle Bin Help ======================${NC}"
+    echo ""
+    echo -e "${YELLOW}Uso:${NC}  ./recycle_bin.sh [opção] [argumentos]"
+    echo ""
+    echo -e "${YELLOW}Opções disponíveis:${NC}"
+    echo -e "  ${GREEN}init${NC}                 Inicializa a recycle bin e cria a estrutura necessária"
+    echo -e "  ${GREEN}delete <ficheiro>${NC}    Move um ou vários ficheiros/diretórios para a recycle bin"
+    echo -e "  ${GREEN}list${NC}                 Lista o conteúdo da recycle bin "
+    echo -e "  ${GREEN}list --detailed${NC}      Lista o conteúdo da recycle bin no modo detalhado"
+    echo -e "  ${GREEN}preview <id>${NC}         Mostra as primeiras 10 linhas de um ficheiro pelo seu id ou o tipo do ficheiro se for binário"
+    echo -e "  ${GREEN}restore <id>${NC}         Restaura um ficheiro eliminado para o local original"
+    echo -e "  ${GREEN}search <padrão>${NC}      Procura ficheiros na recycle bin pelo nome"
+    echo -e "  ${GREEN}empty${NC}                Esvazia permanentemente a recycle bin"
+    echo -e "  ${GREEN}help${NC}                 Mostra esta mensagem de ajuda"
+    echo ""
+    echo -e "${YELLOW}Exemplos:${NC}"
+    echo "  ./recycle_bin.sh init"
+    echo "  ./recycle_bin.sh delete ~/teste_recyclebin/file1.txt"
+    echo "  ./recycle_bin.sh list --detailed"
+    echo "  ./recycle_bin.sh preview 176126081_glq9w9"
+    echo "  ./recycle_bin.sh restore 176126081_glq9w9"
+    echo "  ./recycle_bin.sh search .txt"
+    echo "  ./recycle_bin.sh empty"
+    echo ""
+    echo -e "${GREEN}==========================================================${NC}"
     return 0
+    
 }
 
 #################################################

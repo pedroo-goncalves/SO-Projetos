@@ -1,7 +1,1 @@
 ID,ORIGINAL_NAME,ORIGINAL_PATH,DELETION_DATE,FILE_SIZE,FILE_TYPE,PERMISSIONS,OWNER
-1761260801_glq9w9,a.txt,/home/pedrogoncalves/teste_recyclebin/dirA/a.txt,2025-10-24 00:06:41,15,file,664,pedrogoncalves:pedrogoncalves
-1761260801_9xpqnb,dirA,/home/pedrogoncalves/teste_recyclebin/dirA,2025-10-24 00:06:41,4096,directory,755,pedrogoncalves:pedrogoncalves
-1761260818_0pt3b7,b.txt,/home/pedrogoncalves/teste_recyclebin/dirB/subdir/b.txt,2025-10-24 00:06:58,29,file,664,pedrogoncalves:pedrogoncalves
-1761260818_3vv1pi,subdir,/home/pedrogoncalves/teste_recyclebin/dirB/subdir,2025-10-24 00:06:58,4096,directory,775,pedrogoncalves:pedrogoncalves
-1761260818_flholj,dirB,/home/pedrogoncalves/teste_recyclebin/dirB,2025-10-24 00:06:58,4096,directory,775,pedrogoncalves:pedrogoncalves
-1761304406_mtgi68,ficheiro_binario.bin,/home/pedrogoncalves/teste_recyclebin/ficheiro_binario.bin,2025-10-24 12:13:26,1024,file,664,pedrogoncalves:pedrogoncalves
