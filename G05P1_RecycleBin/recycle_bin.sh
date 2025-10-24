@@ -46,7 +46,7 @@ initialize_recyclebin() {
 
 
     if [ ! -f "$CONFIG_FILE" ]; then
-    
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - Recycle bin inicializada." >> "$LOG_FILE"
         echo "MAX_SIZE_MB=1024" > "$CONFIG_FILE"
         echo "RETENTION_DAYS=30" >> "$CONFIG_FILE"
         
@@ -105,7 +105,8 @@ delete_file() {
 
     if [ ! -d "$RECYCLE_BIN_DIR" ]; then
     
-        initialize_recyclebin
+		echo -e "${RED}Erro: A recycle bin deve ser inicializada antes.${NC}"
+		return 1
         
     fi
 
@@ -248,6 +249,13 @@ delete_file() {
 
 list_recycled() {
 
+	if [ ! -d "$RECYCLE_BIN_DIR" ]; then
+    
+		echo -e "${RED}Erro: A recycle bin deve ser inicializada antes.${NC}"
+        return 1
+        
+    fi
+
     printf '%s\n' "-----------------------------=== Recycle Bin Contents ===--------------------------------"
     printf '%s\n' "-----------------------------------------------------------------------------------------"
     
@@ -357,7 +365,7 @@ list_recycled() {
     printf "Total de ficheiros: %d\n" "$total_files"
     printf "Tamanho total: %s %s\n" "$human_readable_size" "$unit"
     printf '%s\n' "-----------------------------------------------------------------------------------------"
-    
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - Ficheiros da recycle bin foram listados no terminal." >> "$LOG_FILE"
     return 0
 }
 
@@ -370,6 +378,14 @@ list_recycled() {
 
 restore_file() {
     # TODO: Implement this function
+
+	if [ ! -d "$RECYCLE_BIN_DIR" ]; then
+    
+		echo -e "${RED}Erro: A recycle bin deve ser inicializada antes.${NC}"
+        return 1
+        
+    fi
+
     local file_id="$1"
 
     if [ -z "$file_id" ]; then
@@ -394,11 +410,89 @@ restore_file() {
 #################################################
 
 empty_recyclebin() {
-    # TODO: Implement this function
-    # Your code here
-    # Hint: Ask for confirmation
-    # Hint: Delete all files in FILES_DIR
-    # Hint: Reset metadata file
+    
+	if [ ! -d "$RECYCLE_BIN_DIR" ]; then
+    
+		echo -e "${RED}Erro: A recycle bin deve ser inicializada antes.${NC}"
+        return 1
+        
+    fi
+
+    local force_mode=false
+    local file_id=""
+    
+    #Verifica se foi utilizada a --force flag
+    for arg in "$@"; do
+    	if [ "$arg" == "--force" ]; then
+    		force_mode=true
+    	else
+    		file_id="$arg"
+    	fi
+    done
+    		
+    #Apagar tudo se não for especificado ID
+    if [ -z "$file_id" ]; then
+    	local count=$(($(wc -l < "$METADATA_FILE") - 1))
+    	
+    	if [ "$count" -eq 0 ]; then
+    		echo -e "${YELLOW}O recycle bin já está vazio. ${NC}"
+    		return 0
+    	fi
+    	
+    	echo -e "${YELLOW}Existem $count ficheiros no recycle bin.${NC}"
+    	
+    	if [ "$force_mode" = false ]; then
+    		read -p "Tem a certeza que quer apagar todos os ficheiros permanentemente? [Y/N]: " confirmation
+    		#REGEX
+    		if [[ ! "$confirmation" =~ ^[Yy]$ ]]; then
+    			echo -e "${YELLOW}Operação cancelada.${NC}"
+    			return 0
+    		fi	
+    	fi
+    	
+    	rm -rf "${FILES_DIR:?}/"*
+    	echo "ID,ORIGINAL_NAME,ORIGINAL_PATH,DELETION_DATE,FILE_SIZE,FILE_TYPE,PERMISSIONS,OWNER" > "$METADATA_FILE"
+    	
+    	echo "$(date '+%Y-%m-%d %H:%M:%S') - Recycle bin esvaziado (${count} ficheiros removidos)." >> "$LOG_FILE"
+    	echo -e "${GREEN}Recycle bin esvaziado com sucesso (${count} ficheiros removidos).${NC}"
+    	return 0
+    fi
+    
+    #Apagar ficheiro especificado por ID
+    
+    local linha_metadata
+    linha_metadata=$(grep "^$file_id," "$METADATA_FILE")
+    
+    if [ -z "$linha_metadata" ]; then
+    	echo -e "${RED}Erro: ID '$file_id' não encontrado no recycle bin.${NC}"
+    	return 1
+    fi
+    
+    IFS=',' read -r id name path date size type perms owner <<< "$linha_metadata"
+    local file_path="$FILES_DIR/$id"
+    
+    if [ ! -e "$file_path" ]; then
+    
+    	echo -e "${RED}Erro: O ficheiro associado ao ID '$id' já não existe no diretório do recycle bin.${NC}"
+    	grep -v "^$id," "$METADATA_FILE" > "$METADATA_FILE.tmp" && mv "$METADATA_FILE.tmp" "$METADATA_FILE"
+    	return 1
+    fi
+    
+    if [ "$force_mode" = false ]; then
+    	read -p "Tem a certeza que quer apagar permanentemente o ficheiro '$name'? [Y/N]: " confirmation
+    	#REGEX
+    	if [[ ! "$confirmation" =~ ^[Yy]$ ]]; then
+    		echo -e "${YELLOW}Operação cancelada.${NC}"
+    		return 0
+    	fi	
+    fi
+    
+    rm -rf -- "$file_path"
+    
+    grep -v "^$id," "$METADATA_FILE" > "$METADATA_FILE.tmp" && mv "$METADATA_FILE.tmp" "$METADATA_FILE"
+    
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - Ficheiro removido permanentemente: $name (ID: $id)" >> "$LOG_FILE"
+    echo -e "${GREEN}Ficheiro '$name' (ID: $id) removido com sucesso.${NC}"
     return 0
 }
 
@@ -439,7 +533,10 @@ display_help() {
     echo -e "  ${GREEN}preview <id>${NC}         Mostra as primeiras 10 linhas de um ficheiro pelo seu id ou o tipo do ficheiro se for binário"
     echo -e "  ${GREEN}restore <id>${NC}         Restaura um ficheiro eliminado para o local original"
     echo -e "  ${GREEN}search <padrão>${NC}      Procura ficheiros na recycle bin pelo nome"
-    echo -e "  ${GREEN}empty${NC}                Esvazia permanentemente a recycle bin"
+    echo -e "  ${GREEN}empty${NC}                Esvazia permanentemente a recycle bin após receber autorização"
+	echo -e "  ${GREEN}empty --force${NC}        Esvazia permanentemente a recycle bin sem pedir autorização"
+	echo -e "  ${GREEN}empty <id>${NC}           Apaga um ficheiro da recycle bin através do seu id e após receber autorização"
+	echo -e "  ${GREEN}empty <id> --force${NC}   Apaga um ficheiro da recycle bin através do seu id sem receber autorização"
     echo -e "  ${GREEN}help${NC}                 Mostra esta mensagem de ajuda"
     echo ""
     echo -e "${YELLOW}Exemplos:${NC}"
@@ -450,8 +547,12 @@ display_help() {
     echo "  ./recycle_bin.sh restore 176126081_glq9w9"
     echo "  ./recycle_bin.sh search .txt"
     echo "  ./recycle_bin.sh empty"
+	echo "  ./recycle_bin.sh empty --force"
+	echo "  ./recycle_bin.sh empty 176126081_glq9w9"
+	echo "  ./recycle_bin.sh empty 176126081_glq9w9 --force"
     echo ""
     echo -e "${GREEN}==========================================================${NC}"
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - Ajuda foi mostrada no terminal." >> "$LOG_FILE"
     return 0
     
 }
@@ -537,8 +638,9 @@ preview_file(){
             
     esac
 
-
+    
     echo "-----------------------------------------------"
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - O ficheiro de id $file_id foi previewed no terminal." >> "$LOG_FILE"
     return 0
 }
 
@@ -573,15 +675,18 @@ main() {
             ;;
             
         restore)
-            restore_file "$2"
+			shift
+            restore_file "$@"
             ;;
             
         search)
-            search_recycled "$2"
+			shift
+            search_recycled "$@"
             ;;
             
         empty)
-            empty_recyclebin
+			shift
+            empty_recyclebin "$@"
             ;;
             
         help|--help|-h)
