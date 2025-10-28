@@ -3,19 +3,19 @@
 #################################################
 # Script Header Comment
 # Authors: Pedro Gonçalves 126463 & David Monteiro 125793
-# Date: 29/10/25
-# Description: Brief description
-# Version: 1.0
+# Date: 31/10/25
+# Description: This project aimed to develop a Recycle Bin system for the Linux environment using Bash Shell Scripting. The system essentially simulates the functionality of the Linux Trash Can through the implementation of various modular functions. In this way, the system is capable of deleting, restoring, and listing files; managing and storing metadata; logging all operations in a history file; among other additional features. The entire implementation was carried out in accordance with the requirements proposed for Trabalho Prático 1 – Linux Recycle Bin Simulation, within the scope of the "Sistemas Operativos" course.
+# Version: 5.0
 #################################################
 
 # Global Configuration
-RECYCLE_BIN_DIR="$HOME/Projeto01_SO/recycle_bin" ####### COLOCAR AQUI UM PONTO (ANTES DE recycle_bin) QUANDO FOR PARA ENTREGAR!!
+RECYCLE_BIN_DIR="$HOME/Projeto01_SO_G05P1/recycle_bin"
 FILES_DIR="$RECYCLE_BIN_DIR/files"
 METADATA_FILE="$RECYCLE_BIN_DIR/metadata.db"
 CONFIG_FILE="$RECYCLE_BIN_DIR/config"
-LOG_FILE="$RECYCLE_BIN_DIR/log.txt"
+LOG_FILE="$RECYCLE_BIN_DIR/recyclebin.log"
 
-# Color codes for output (optional)
+# Color codes for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -24,48 +24,46 @@ NC='\033[0m' # No Color
 #################################################
 # Function: initialize_recyclebin
 # Description: initializes the recycle bin if it exists, and creates its structure if it doesn't exist.
+# Parameters: None
 # Returns: 0 if it works sucessfully or 1 if not.
 #################################################
 
 initialize_recyclebin() {
     
     if [ ! -d "$RECYCLE_BIN_DIR" ]; then
-        
         echo ""
         echo -e "${YELLOW}A recycle bin não existe atualmente.${NC}"
-        mkdir -p "$FILES_DIR" || { echo "${RED}Ocorreu um erro ao inicializar a recycle bin."; return 1; }
-        
+        mkdir -p "$FILES_DIR" || { echo "${RED}Ocorreu um erro ao inicializar o Recycle Bin.${NC}"; return 1; }
+	else
+		echo ""
+		echo -e "${RED}O Recycle Bin já existe.${NC}"
+		return 1
     fi
     
 
     if [ ! -f "$METADATA_FILE" ]; then
-    
         echo "ID,ORIGINAL_NAME,ORIGINAL_PATH,DELETION_DATE,FILE_SIZE,FILE_TYPE,PERMISSIONS,OWNER" > "$METADATA_FILE"
-
     fi
 
 
     if [ ! -f "$CONFIG_FILE" ]; then
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - Recycle bin inicializada." >> "$LOG_FILE"
+    	echo "$(date '+%Y-%m-%d %H:%M:%S') - Recycle bin inicializada." >> "$LOG_FILE"
         echo "MAX_SIZE_MB=1024" > "$CONFIG_FILE"
         echo "RETENTION_DAYS=30" >> "$CONFIG_FILE"
-        
     fi
 
 
     if [ ! -f "$LOG_FILE" ]; then
-    
         touch "$LOG_FILE"
-        
     fi
     
     
     echo "$(date '+%Y-%m-%d %H:%M:%S') - Recycle bin inicializada." >> "$LOG_FILE"
     
     echo ""
-    echo -e "${GREEN}A recycle bin foi inicializada com sucesso no diretório: $RECYCLE_BIN_DIR ${NC}"
+    echo -e "${GREEN}O Recycle Bin foi inicializado com sucesso no diretório: $RECYCLE_BIN_DIR ${NC}"
     echo ""
-    echo -e "${RED}Bem vindo à recycle bin, digite o comando: './recycle_bin.sh help' para obter ajuda!${NC}"
+    echo -e "${RED}Bem vindo ao recycle bin, introduza o comando: './recycle_bin.sh help' para obter ajuda!${NC}"
     echo ""
     return 0
     
@@ -96,56 +94,40 @@ generate_unique_id() {
 delete_file() {
 
     if [ $# -eq 0 ]; then
-    
-        echo -e "${YELLOW}Deve ser digitado o nome ou diretório de pelo menos um ficheiro.${NC}"
+        echo -e "${YELLOW}Deve ser introduzido o nome ou diretório de pelo menos um ficheiro.${NC}"
         return 1
-        
     fi
-
 
     if [ ! -d "$RECYCLE_BIN_DIR" ]; then
-    
 		echo -e "${RED}Erro: A recycle bin deve ser inicializada antes.${NC}"
 		return 1
-        
     fi
 
-
     for file in "$@"; do
-
         if [ ! -e "$file" ]; then
-        
             echo -e "${YELLOW}O ficheiro/diretório '$file' não existe e não pode ser apagado.${NC}"
             return 1
             echo ""
-            continue
-            
+            continue  
         fi
 
-
         if [[ "$file" == "$RECYCLE_BIN_DIR"* ]]; then
-        
             echo -e "${RED}Erro: Não podes eliminar a recycle bin.${NC}"
             return 1
             echo ""
-            continue
-            
+            continue 
         fi
-
 
         local parent_dir
         parent_dir=$(dirname "$file")
 
         # verifica permissões no diretório e no ficheiro
         if [ ! -w "$parent_dir" ] || [ ! -x "$parent_dir" ] || [ ! -w "$file" ]; then
-        
             echo -e "${RED}Erro: Sem permissões suficientes para apagar '$file'.${NC}"
             return 1
             echo ""     
-            continue
-            
+            continue  
         fi
-
 
         local id
         id=$(generate_unique_id)
@@ -159,17 +141,11 @@ delete_file() {
         local dest_path="$FILES_DIR/$id"
         local file_type
 
-
         if [ -d "$file" ]; then
-        
-            file_type="directory"
-            
+            file_type="directory"  
         else
-        
-            file_type="file"
-            
+            file_type="file"  
         fi
-
 
         # verifica espaço disponível
         available_kb=$(df --output=avail "$RECYCLE_BIN_DIR" | tail -n 1)
@@ -182,7 +158,6 @@ delete_file() {
             continue
             
         fi
-
 
         # apagar os diretorios de forma recursiva:
         
@@ -244,7 +219,6 @@ delete_file() {
 
     return 0
 }
-
 
 #################################################
 # Function: list_recycled
@@ -783,6 +757,30 @@ display_help() {
 }
 
 #################################################
+# Function: show_statistics
+# Description: Display statistics like number of files, total storage and average file size
+# Parameters: None
+# Returns: 1 if not sucessful, 0 if sucessful
+#################################################
+
+
+
+
+#################################################
+# Function: auto_cleanup
+# Description: Automatically delete items older then RETENTION_DAYS
+# Parameters: None
+# Returns: 1 if not sucessful, 0 if sucessful
+#################################################
+
+#################################################
+# Function: check_quota
+# Description: Check if recycle bin exceeds MAX_SIZE_MB
+# Parameters: None
+# Returns: 1 if not sucessful, 0 if sucessful
+#################################################
+
+#################################################
 # Function: preview_file
 # Description: Displays the first 10 lines of the selected file in the recycle bin.
 # Parameters: None
@@ -877,13 +875,12 @@ preview_file(){
 #################################################
 
 main() {
-
+	
+	#Ordenar main pela ordem
+	# Initialize recycle bin
+	initialize_recyclebin
     # Parse command line arguments
     case "$1" in
-        init)
-            initialize_recyclebin
-            ;;
-            
         delete)
             shift
             delete_file "$@"
@@ -917,8 +914,22 @@ main() {
         help|--help|-h)
             display_help
             ;;
-            
-        *)
+
+		statistics)
+			show_statistics
+			;;
+
+		cleanup)
+			auto_cleanup
+			;;
+
+		quota)
+			check_quota
+			;;
+        "")
+			echo ""
+			;;
+		*)
             echo "Invalid option. Use 'help' for usage information."
             exit 1
             ;;
