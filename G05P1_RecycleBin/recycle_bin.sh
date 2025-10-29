@@ -312,7 +312,7 @@ list_recycled() {
 	# Show simplified list
     if [ "$mode" = "non_detailed" ]; then
         local line=0
-        printf "%-25s %-25s %-20s %-10s\n" "ID" "NOME" "DATA" "TAMANHO (Bytes)"
+        printf "%-25s %-25s %-20s %-10s\n" "ID" "NOME" "DATA" "TAMANHO(B)"
         printf "%-25s %-25s %-20s %-10s\n" "-------------------------" "-------------------------" "--------------------" "----------------"
         
         while IFS=',' read -r id name path date size type perms owner; do
@@ -333,7 +333,7 @@ list_recycled() {
         total_files=0
         total_size=0
         printf "%-20s %-20s %-55s %-17s %10s %-12s %-12s %-20s\n" \
-        "ID" "NOME" "CAMINHO ORIGINAL" "DATA" "TAM (B)" "   TIPO" "   PERMISSÕES" "  OWNER"
+        "ID" "NOME" "CAMINHO ORIGINAL" "DATA" "TAM(B)" "   TIPO" "   PERMISSÕES" "  OWNER"
         printf "%-20s %-20s %-55s %-20s %10s %-12s %-12s %-20s\n" \
         "--------------------" "--------------------" "-------------------------------------------------------" "--------------------" "----------" "------------" "------------" "--------------------"
 
@@ -618,45 +618,63 @@ search_recycled() {
 	fi
 
     local pattern="$1"
-	local grep_flags="-E"
+	local ignore_case=false
 
 	# Allow case-insensitive mode if user passes -i
 	if [ "$2" == "-i" ]; then
-		grep_flags="-Ei"
+		ignore_case=true
 	fi
 
-	# Attempt to make a safe regex out of a pattern
-	# s/OLD/NEW/g
-	local regex_pattern=$(echo "$pattern" | sed 's/\/./g')
-
-	# Skip header line before grepping
-	local matches=$( tail -n +2 "$METADATA_FILE" | grep ${grep_flags} -- "$regex_pattern")
-
-	# If there are no matches, inform the user and log the event
-	if [ -z "$matches" ]; then
-		echo -e "${YELLOW}Nenhum ficheiro encontrado com esse padrão '$pattern'.${NC}"
-		echo "$(date '+%Y-%m-%d %H:%M:%S') - Pesquisa sem resultados para: '$pattern'" >> "$LOG_FILE"
-		return 0
+	# Ensure metadata file exists
+	if [ ! -f "$METADATA_FILE" ]; then
+		echo -e "${RED}Erro: metadata.db não encontrado.${NC}"
+		return 1
 	fi
 
-	# If there's a match present to the user in a readable format
+	# Header for results
 	echo ""
 	echo -e "${GREEN}Resultados da pesquisa para:${NC} '$pattern'"
-	printf "%-20s %-20s %-55s %-20s %10s %-12s\n" "ID" "NOME" "CAMINHO ORIGINAL" "DATA" "TAM (B)" "TIPO"
-	printf "%-20s %-25s %-55s %-20s %-10s %-12s\n" "--------------------" "-------------------------" "-------------------------------------------------------" "--------------------" "----------" "------------"
-	
-	# Display the matching metadata line in the table format
+	echo "---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
+	printf "%-20s %-30s %-80s %-20s %10s %-10s\n" \
+    "ID" "NOME" "CAMINHO ORIGINAL" "DATA" "TAM (B)" "TIPO"
+	printf "%-20s %-30s %-80s %-20s %10s %-10s\n" \
+    "--------------------" "------------------------------" "--------------------------------------------------------------------------------" "--------------------" "----------" "----------"
+	echo "---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
+	local found=false
+
+	# Read metadata file ignoring header
 	while IFS=',' read -r id name path date size type perms owner; do
-	
-		printf "%-20s %-20s %-55s %-20s %-10s %-12s\n" "$id" "$name" "$path" "$date" "$size" "$type"
 		
-	done <<< "$matches"
+		# Combine name and original path for searching
+		local fulltext="$name $path"
 
-	# Log that a search was successfully performed
-	echo ""
-	echo "$(date '+%Y-%m-%d %H:%M:%S') - Pesquisa realizada: '$pattern'" >> "$LOG_FILE"
+		# Use grep -q -E for quiet extended-regex matching
+		# Add flag -i when ignore_case is true
+		if $ignore_case; then
+			echo "$fulltext" | grep -iq -E -- "$pattern"
+		else
+			echo "$fulltext" | grep -q -E -- "$pattern"
+		fi
 
-    return 0
+		# If there's a match, print the formatted line and mark as found
+		if [ $? -eq 0 ]; then
+			printf "%-20.20s %-30.30s %-80.80s %-20.20s %10s %-10.10s\n" \ "$id" "$name" "$path" "$date" "$size" "$type"
+			found=true
+		fi
+
+	done < <(tail -n +2 "$METADATA_FILE")
+
+	# If no matches found, inform the user and log
+	if [ "$found" = false ]; then
+		echo -e "${YELLOW}Nenhum ficheiro encontrado com esse padrão '$pattern'.${NC}"
+		echo "$(date '+%Y-%m-%d %H:%M:%S') - Pesquisa sem resultados para: '$pattern'" >> "$LOG_FILE"
+	else
+		echo "---------------------------------------------------------------------------------------------------------------"
+		echo ""
+		echo "$(date '+%Y-%m-%d %H:%M:%S') - Pesquisa realizada: '$pattern'" >> "$LOG_FILE"
+	fi
+
+	return 0
 }
 #################################################
 # Function: show_statistics
@@ -771,7 +789,7 @@ auto_cleanup() {
 
 	# If there are no files stop 
 	if [ -z "$old_files" ]; then
-		echo -e "${YELLOW}nenhum ficheiro excedeu o período de retenção.${NC}"
+		echo -e "${YELLOW}Nenhum ficheiro excedeu o período de retenção.${NC}"
 		return 0
 	fi
 
@@ -984,7 +1002,7 @@ main() {
 
 	# If no argument is passed it just initializes the recycle bin
 	if [ $# -eq 0 ]; then
-		echo ""
+		echo -e "${YELLOW}Recycle bin já inicializada${NC}"
 		exit 0	
 	fi
 

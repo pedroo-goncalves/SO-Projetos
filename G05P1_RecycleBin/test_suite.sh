@@ -20,13 +20,13 @@ NC='\033[0m'
 # ===========================================================
 
 setup() {
-    rm -rf "$HOME/Projeto01_SO/recycle_bin"
+    rm -rf "$HOME/Projeto01_SO_G05P1/recycle_bin"
     mkdir -p "$TEST_DIR"
 }
 
 teardown() {
     rm -rf "$TEST_DIR"
-    rm -rf "$HOME/Projeto01_SO/recycle_bin"
+    rm -rf "$HOME/Projeto01_SO_G05P1/recycle_bin"
 }
 
 assert_success() {
@@ -51,7 +51,7 @@ assert_fail() {
 
 get_id_by_name() {
   local name="$1"
-  local meta="$HOME/Projeto01_SO/recycle_bin/metadata.db"
+  local meta="$HOME/Projeto01_SO_G05P1/recycle_bin/metadata.db"
   awk -F',' -v n="$name" 'NR>1 && $2==n {print $1; exit}' "$meta"
 }
 
