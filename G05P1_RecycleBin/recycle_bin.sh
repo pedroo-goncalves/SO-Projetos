@@ -23,7 +23,7 @@ NC='\033[0m' # No Color
 
 #################################################
 # Function: initialize_recyclebin
-# Description: initializes the recycle bin if it doesn't exist and creates its structure if any parts are missing.
+# Description: Initializes the recycle bin if it doesn't exist and creates its structure if any parts are missing.
 # Parameters: None
 # Returns: 0 on success, 1 on failure
 #################################################
@@ -694,7 +694,7 @@ show_statistics() {
 	local total_counter=$(awk -F, 'NR>1 {counter++} END {print counter+0}' "$METADATA_FILE")
 	local total_size=$(awk -F, 'NR>1 {size+=$5} END {print size+0}' "$METADATA_FILE")
 	local files_counter=$(awk -F, 'NR>1 && $6=="file" {counter++} END {print counter+0}' "$METADATA_FILE")
-	local directories_counter=$(awk -F, 'NR>1 && $6=="file" {counter++} END {print counter+0}' "$METADATA_FILE")
+	local directories_counter=$(awk -F, 'NR>1 && $6=="directory" {counter++} END {print counter+0}' "$METADATA_FILE")
     	
 	# If the recycle bin is empty stop early
     if [ "$total_counter" -eq 0 ]; then
@@ -725,10 +725,8 @@ show_statistics() {
 	local MAX_SIZE_MB=$(grep "MAX_SIZE_MB" "$CONFIG_FILE" | cut -d'=' -f2)
 	local max_bytes=$(( "$MAX_SIZE_MB" * 1024 * 1024))
 
-	local quota_percent=0
-	if [ ! "$max_bytes" -eq 0 ]; then
-		local quota_percent=$(( (total_size * 100) / max_bytes ))
-	fi
+	local quota_percent=$(awk -v used="$total_size" -v max="$max_bytes" 'BEGIN { printf "%.2f", (used/max)*100 }')
+
 
 	# Function format_size call to convert all sizes
 	local formatted_total_size
@@ -740,16 +738,19 @@ show_statistics() {
 	# Output Results
 	echo ""
 	echo -e "${GREEN}=== Estatísticas do Recycle Bin ===${NC}"
-	printf "%-35s : %s\n" "Total de itens" "$total_counter"
-	printf "%-35s : %s\n" "Número de ficheiros" "$files_counter"
-	printf "%-35s : %s\n" "Números de diretórios" "$directories_counter"
-	printf "%-35s : %s\n" "Ficheiro mais antigo" "$oldest_name / $oldest_id / $oldest_date"
-	printf "%-35s : %s\n" "Ficheiro mais recente" "$newest_name / $newest_id / $newest_date"
-	printf "%-35s : %s\n" "Tamanho total" "$formatted_total_size"
-	printf "%-35s : %s\n" "Tamanho médio" "$formatted_average_size"	
-	printf "%-35s : %s\n" "Percentagem de quota usada" "$quota_percent"
-
+	printf "%-15s : %-15s\n" "Total de itens" "$total_counter"
+    printf "%-15s : %-15s\n" "Número de ficheiros" "$files_counter"
+    printf "%-15s : %-15s\n" "Número de diretórios" "$directories_counter"
+    printf "%-15s : %-15s\n" "Ficheiro mais antigo" "$oldest_name / $oldest_id / $oldest_date"
+    printf "%-15s : %-15s\n" "Ficheiro mais recente" "$newest_name / $newest_id / $newest_date"
+    printf "%-15s : %-15s\n" "Tamanho total" "$formatted_total_size"
+    printf "%-15s : %-15s\n" "Tamanho médio" "$formatted_average_size"
+    printf "%-15s : %-15s\n" "Quota usada" "$quota_percent %"
+	echo -e "${GREEN}=============================================================={NC}"
 	echo ""
+
+	# Log operation
+	echo "$(date '+%Y-%m-%d %H:%M:%S') - Estatísticas do recycle bin mostradas." >> "$LOG_FILE"
 	return 0
 }
 #################################################
@@ -878,7 +879,7 @@ preview_file() {
     
 	# Ensure exactly one argument is provided (file ID)
     if [ $# -ne 1 ]; then
-        echo -e "${RED}Deve ser inserido apenas o id do ficheiro no recycle bin como argumento.${NC}"
+        echo -e "${RED}Deve ser inserido o id ou o nome do ficheiro no recycle bin como argumento.${NC}"
         return 1 
     fi
     
@@ -953,27 +954,31 @@ display_help() {
     echo -e "${YELLOW}Uso:${NC}  ./recycle_bin.sh [opção] [argumentos]"
     echo ""
     echo -e "${YELLOW}Opções disponíveis:${NC}"
-    echo -e "  ${GREEN}delete <ficheiro>${NC}      Move um ou vários ficheiros/diretórios para o recycle bin"
-    echo -e "  ${GREEN}list${NC}                   Lista o conteúdo do recycle bin "
-    echo -e "  ${GREEN}list --detailed${NC}        Lista o conteúdo do recycle bin no modo detalhado"
-    echo -e "  ${GREEN}preview <id>${NC}           Mostra as primeiras 10 linhas de um ficheiro pelo seu id ou o tipo do ficheiro se for binário"
-    echo -e "  ${GREEN}restore <id/filename>${NC}  Restaura um ficheiro eliminado para o local original"
-    echo -e "  ${GREEN}search <filename/path>${NC} Procura ficheiros na recycle bin pelo nome ou pelo caminho"
-	echo -e "  ${GREEN}search <pattern>${NC} Procura ficheiros na recycle bin pelo nome ou pelo caminho"
-    echo -e "  ${GREEN}empty${NC}                  Esvazia permanentemente a recycle bin após receber autorização"
-	echo -e "  ${GREEN}empty --force${NC}          Esvazia permanentemente a recycle bin sem pedir autorização"
-	echo -e "  ${GREEN}empty <id>${NC}             Apaga um ficheiro da recycle bin através do seu id e após receber autorização"
-	echo -e "  ${GREEN}empty <id> --force${NC}     Apaga um ficheiro da recycle bin através do seu id sem receber autorização"
-    echo -e "  ${GREEN}help${NC}                   Mostra esta mensagem de ajuda"
+    echo -e "  ${GREEN}delete <ficheiro>${NC}      		Move um ou vários ficheiros/diretórios para o recycle bin"
+    echo -e "  ${GREEN}list${NC}                   		Lista o conteúdo do recycle bin "
+    echo -e "  ${GREEN}list --detailed${NC}        		Lista o conteúdo do recycle bin no modo detalhado"
+    echo -e "  ${GREEN}restore <id/filename>${NC}  		Restaura um ficheiro eliminado para o local original"
+    echo -e "  ${GREEN}search <filename/path>${NC} 		Procura ficheiros no recycle bin pelo nome ou pelo caminho"
+	echo -e "  ${GREEN}search <filename/path> -i${NC} 		Procura ficheiros no recycle bin pelo nome ou pelo caminho sem fazer distinção entre maiúsculas e minúsculas"
+	echo -e "  ${GREEN}search <pattern>${NC} 			Procura ficheiros no recycle bin através de um padrão (tipo de ficheiro como por exemplo .txt)"
+    echo -e "  ${GREEN}empty${NC}                  		Esvazia permanentemente todo o recycle bin após receber autorização"
+	echo -e "  ${GREEN}empty --force${NC}          		Esvazia permanentemente todo o recycle bin sem pedir autorização"
+	echo -e "  ${GREEN}empty <id>${NC}             		Elimina um ficheiro do recycle bin através do seu id e após receber autorização"
+	echo -e "  ${GREEN}empty <id> --force${NC}     		Elimina um ficheiro do recycle bin através do seu id sem receber autorização"
+	echo -e "  ${GREEN}statistics${NC}             		Mostra algumas estatísticas adicionais sobre o recycle bin"
+	echo -e "  ${GREEN}cleanup${NC}                		Apaga automaticamente ficheiros/diretórios mais antigos que o período de retenção"
+	echo -e "  ${GREEN}quota${NC}                  		Verifica se o recycle bin excedeu o tamanho máximo permitido"
+	echo -e "  ${GREEN}preview <id>${NC}           		Mostra as primeiras 10 linhas de um ficheiro pelo seu id ou o tipo do ficheiro se for binário"
+    echo -e "  ${GREEN}help${NC}                   		Mostra esta mensagem de ajuda"
     echo ""
     echo -e "${YELLOW}Exemplos:${NC}"
-    echo "  ./recycle_bin.sh init"
     echo "  ./recycle_bin.sh delete ~/teste_recyclebin/file1.txt"
+	echo "  ./recycle_bin.sh list"
     echo "  ./recycle_bin.sh list --detailed"
-    echo "  ./recycle_bin.sh preview 176126081_glq9w9"
-    echo "  ./recycle_bin.sh restore 176126081_glq9w9"
-    echo "  ./recycle_bin.sh search .txt"
-	echo "  ./recycle_bin.sh search .txt -i"
+	echo "  ./recycle_bin.sh restore 176126081_glq9w9"
+    echo "  ./recycle_bin.sh search file1"
+	echo "  ./recycle_bin.sh search FILE1 -i"
+	echo "  ./recycle_bin.sh search .txt"
     echo "  ./recycle_bin.sh empty"
 	echo "  ./recycle_bin.sh empty --force"
 	echo "  ./recycle_bin.sh empty 176126081_glq9w9"
@@ -981,6 +986,8 @@ display_help() {
 	echo "  ./recycle_bin.sh statistics"
 	echo "  ./recycle_bin.sh cleanup"
 	echo "  ./recycle_bin.sh quota"
+	echo "  ./recycle_bin.sh preview 176126081_glq9w9"
+	echo "  ./recycle_bin.sh help"
     echo ""
     echo -e "${GREEN}==========================================================${NC}"
     echo "$(date '+%Y-%m-%d %H:%M:%S') - Ajuda foi mostrada no terminal." >> "$LOG_FILE"
@@ -1002,7 +1009,9 @@ main() {
 
 	# If no argument is passed it just initializes the recycle bin
 	if [ $# -eq 0 ]; then
-		echo -e "${YELLOW}Recycle bin já inicializada${NC}"
+		echo ""
+		echo -e "${YELLOW}Recycle bin já inicializado${NC}"
+		echo ""
 		exit 0	
 	fi
 
@@ -1057,7 +1066,7 @@ main() {
 			echo ""
 			;;
 		*)
-            echo "Opção Inválida. Utilize 'help' para obter informações de utilização."
+            echo "Opção Inválida. Utilize 'recycle_bin.sh help' para obter informações de utilização."
             exit 1
             ;;  
     esac

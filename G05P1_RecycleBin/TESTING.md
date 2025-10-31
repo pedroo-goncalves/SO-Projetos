@@ -10,22 +10,24 @@ David Saraiva Monteiro
 
 ## Test Plan overview
 
-O nosso plano de testes consiste em testar as funções principais e obrigatórias primeiro e só depois testar as funções opcionais. As funções serão testadas pela ordem estabelecida nos requisitos (Secção Features no documento README.md) para evitar possíveis erros derivados de dependências entre funções. Em primeiro lugar, decorrerão os testes das "Funcionalidades Básicas"/"Basic Functionalities" tanto das funções principais como das funções opcionais. Em segundo lugar, vamos testar os "Casos Extremos"/"Edge Cases" associados às diferentes funções. Em terceiro lugar, será feito o "Tratamento de Erros"/"Error Handling" para verificar se as mensagens de erro foram bem implementadas. Por último, terão lugar os "Testes de Performance"/"Performance Tests" para verificar o modo como o sistema lida com ficheiros maiores e operações mais complexas. É preciso mencionar que ada função terá um ou vários cenários de teste para cobrir todas as possibilidades de chamar as funções com diferentes argumentos e flags predefinidas. O script deve ser sempre testado no seguinte diretório "/home/user/Projeto01_SO/G05P1_RecycleBin" (ver regras de instalação no documento README.md).
+O nosso plano de testes consiste em testar as funções principais e obrigatórias primeiro e só depois testar as funções opcionais. As funções serão testadas pela ordem estabelecida nos requisitos (Secção Features no documento README.md) para evitar possíveis erros derivados de dependências entre funções. Em primeiro lugar, decorrerão os testes das "Funcionalidades Básicas"/"Basic Functionalities" tanto das funções principais como das funções opcionais. Em segundo lugar, vamos testar os "Casos Extremos"/"Edge Cases" associados às diferentes funções. Em terceiro lugar, será feito o "Tratamento de Erros"/"Error Handling" para verificar se as mensagens de erro foram bem implementadas. Por último, terão lugar os "Testes de Performance"/"Performance Tests" para verificar o modo como o sistema lida com ficheiros maiores e operações mais complexas. É preciso mencionar que ada função terá um ou vários cenários de teste para cobrir todas as possibilidades de chamar as funções com diferentes argumentos e flags predefinidas. O script deve ser sempre testado no seguinte diretório "/home/user/Projeto01_SO_G05P1/G05P1_RecycleBin" (ver regras de instalação no documento README.md).
 
 ## Test cases with results
 
 ### Test Case 1: Initialize recycle bin structure
-**Objetivo:** Verificar se é criada a pasta recycle_bin com todos os ficheiros necessários (diretório "Files", ficheiro "config", ficheiro "log.txt", ficheiro metadata.bd). Isto é, verificar se tem a estrutura correta para que o resto das funções funcionem.
+**Objetivo:** Verificar se é criada a pasta recycle_bin com todos os ficheiros necessários (diretório "Files", ficheiro "config", ficheiro "recyclebin.log", ficheiro metadata.db). Isto é, verificar se tem a estrutura correta para que o resto das funções funcionem.
 
 **Passos:**
-1. Run: `./recycle_bin.sh`
+1. Executar: `./recycle_bin.sh`
 2. Verificar a emissão da mensagem "O recycle bin não existe atualmente."
-3. Verificar a emissão da mensagem "A recycle bin foi inicializada com sucesso no diretório: /home/user/Projeto01_SO/recycle_bin"
-4. Averiguar a criação da pasta recycle_bin
-5. Averiguar o conteúdo da pasta recycle_bin
+3. Verificar a emissão da mensagem "A recycle bin foi inicializada com sucesso no diretório: /home/user/Projeto01_SO_G05P1/recycle_bin"
+4. Verificar a emissão da mensagem "Bem vindo ao recycle bin, introduza o comando: './recycle_bin.sh help' para obter ajuda!"
+5. Verificar a emissão da mensagem "Recycle bin já inicializado"
+6. Averiguar a criação da pasta recycle_bin
+7. Averiguar o conteúdo da pasta recycle_bin
 
 **Resultado Esperado:**
-- A pasta recycle_bin foi criada no diretório "/home/user/Projeto01_SO/recycle_bin"
+- A pasta recycle_bin foi criada no diretório "/home/user/Projeto01_SO_G05P1/recycle_bin"
 - O diretório "Files" foi criado dentro da pasta recycle_bin
 - O ficheiro "config" foi criado dentro da pasta recycle_bin com as informações MAX_SIZE_MB=1024 e RETENTION_DAYS=30
 - O ficheiro "log.txt" foi criado dentro da pasta recycle_bin com a data da inicialização do recycle bin
@@ -40,7 +42,8 @@ O nosso plano de testes consiste em testar as funções principais e obrigatóri
 
 **Estado do Teste:** Pass 
 
-**Screenshots:** [Ver pasta]
+**Screenshots:** 
+![Initialize recycle bin structure](./screenshots/initialize_recyclebin_structure.png) 
 
 
 ### Test Case 2: Delete single file
@@ -136,7 +139,7 @@ O nosso plano de testes consiste em testar as funções principais e obrigatóri
 3. Executar: `./recycle_bin.sh list`
 
 **Resultado Esperado:**
--    Todos os ficheiros e subdiretórios são movidos para o recycle bin
+- Todos os ficheiros e subdiretórios são movidos para o recycle bin
 - Cada item tem uma linha no metadata.db
 - O diretório original é removido
 - É apresentada mensagem “A apagar diretório de forma recursiva”
@@ -159,12 +162,12 @@ O nosso plano de testes consiste em testar as funções principais e obrigatóri
 
 **Passos:**
 1. Criar um ficheiro de teste: `echo "file1" > file1.txt`. Ou em alternativa, utilizar uma pasta com ficheiros e diretórios lá dentro para testar (neste caso em específico foram utilizados ficheiros e diretórios da pasta teste_recyclebin disponibilizada na entrega)
-2. Run: `./recycle_bin.sh delete file1.txt`
+2. Executar: `./recycle_bin.sh delete file1.txt`
 3. Confirmar que o ficheiro file1.txt foi removido do diretório original
-4. Run: `./recycle_bin.sh list`
+4. Executar: `./recycle_bin.sh list`
 5. Verificar que o ficheiro "file1.txt" se encontra listado no recycle bin
-6. Run: `./recycle_bin.sh empty --force`
-7. Run: `./recycle_bin.sh list`
+6. Executar: `./recycle_bin.sh empty --force`
+7. Executar: `./recycle_bin.sh list`
 8. Verificar que o recycle bin se encontra vazio e que a metadata foi limpa
 
 **Resultado Esperado:**
@@ -191,9 +194,9 @@ O nosso plano de testes consiste em testar as funções principais e obrigatóri
 
 **Passos:**
 1. Criar vários ficheiros de teste: `echo "file1" > file1.txt` `echo "file2" > file2.txt` `echo "file3" > file3.txt`. Ou em alternativa, utilizar uma pasta com ficheiros e diretórios lá dentro para testar (neste caso em específico foram utilizados ficheiros e diretórios da pasta teste_recyclebin disponibilizada na entrega)
-2. Run: `./recycle_bin.sh delete file1.txt file3.txt dirA dirB`
+2. Executar: `./recycle_bin.sh delete file1.txt file3.txt dirA dirB`
 3. Confirmar que os ficheiros e diretórios foram removidos do diretório original
-4. Run: `./recycle_bin.sh list`
+4. Executar: `./recycle_bin.sh list`
 5. Verificar que os ficheiros e diretórios aparecem com a formatação da tabela
 
 **Resultado Esperado:**
@@ -210,7 +213,8 @@ O nosso plano de testes consiste em testar as funções principais e obrigatóri
 
 **Estado do Teste:** Pass
 
-**Screenshots:** ![List recycle bin with items](./screenshots/list_recyclebin_with_items.png) 
+**Screenshots:** 
+![List recycle bin with items](./screenshots/list_recyclebin_with_items.png) 
 
 ### Test Case 8: Restore single file
 **Objetivo:** Verificar se um ficheiro apagado é restaurado corretamente para o seu diretório original.
@@ -268,17 +272,17 @@ O nosso plano de testes consiste em testar as funções principais e obrigatóri
 **Objetivo:** Verificar se os comandos `./recycle_bin.sh empty`e `./recycle_bin.sh empty --force` removem corretamente todos os ficheiros presentes no recycle bin. No primeiro caso a pedir permissão e no segundo sem pedir permissão. É importante que no final o ficheiro metadata.db seja limpo.
 **Passos:**
 1. Criar vários ficheiros de teste: `echo "file1" > file1.txt` `echo "file2" > file2.txt` `echo "file3" > file3.txt`. Ou em alternativa, utilizar uma pasta com ficheiros e diretórios lá dentro para testar (neste caso em específico foram utilizados ficheiros e diretórios da pasta teste_recyclebin disponibilizada na entrega)
-2. Run: `./recycle_bin.sh delete file1.txt file3.txt dirA dirB`
+2. Executar: `./recycle_bin.sh delete file1.txt file3.txt dirA dirB`
 3. Confirmar que os ficheiros e diretórios foram removidos do diretório original
-4. Run: `./recycle_bin.sh list`
+4. Executar: `./recycle_bin.sh list`
 5. Verificar que os ficheiros e diretórios aparecem com a formatação da tabela
-6. Run: `./recycle_bin.sh empty`
+6. Executar: `./recycle_bin.sh empty`
 7. Proceder à confirmação. Quando aparecer a mensagem introduzir "y" ou "Y".
-8. Run: `./recycle_bin.sh list`
+8. Executar: `./recycle_bin.sh list`
 9. Verificar que o recycle bin se encontra vazio e que a metadata foi limpa.
 10. Repetir os passos 1 a 5
-11. Run: `./recycle_bin.sh empty --forced`
-12. Run: `./recycle_bin.sh list`
+11. Executar: `./recycle_bin.sh empty --forced`
+12. Executar: `./recycle_bin.sh list`
 13. Verificar que o recycle bin se encontra vazio e que a metadata foi limpa.
 
 **Resultado Esperado:**
@@ -312,12 +316,12 @@ O nosso plano de testes consiste em testar as funções principais e obrigatóri
 
 **Passos:**
 1. Criar vários ficheiros de teste: `echo "file1" > file1.txt` `echo "file2" > file2.txt` `echo "file3" > file3.txt`. Ou em alternativa, utilizar uma pasta com ficheiros e diretórios lá dentro para testar (neste caso em específico foram utilizados ficheiros e diretórios da pasta teste_recyclebin disponibilizada na entrega)
-2. Run: `./recycle_bin.sh delete file1.txt file3.txt dirA dirB`
+2. Executar: `./recycle_bin.sh delete file1.txt file3.txt dirA dirB`
 3. Confirmar que os ficheiros e diretórios foram removidos do diretório original
-4. Run: `./recycle_bin.sh list`
+4. Executar: `./recycle_bin.sh list`
 5. Verificar que os ficheiros e diretórios aparecem com a formatação da tabela
-6. Run: `./recycle_bin.sh search file3`
-7. Run: `./recycle_bin.sh search FILE1 -i`
+6. Executar: `./recycle_bin.sh search file3`
+7. Executar: `./recycle_bin.sh search FILE1 -i`
 8. Observar que o ficheiro foi encontrado com sucesso em ambos os casos e as suas apresentações em tabela estão corretamente formatadas.
 
 **Resultado Esperado:**
@@ -340,48 +344,184 @@ O nosso plano de testes consiste em testar as funções principais e obrigatóri
 ![Search for existing file](./screenshots/search_for_existing_file.png)
 
 ### Test Case 12: Search for non-existent file
-**Objetivo:** Verificar se é criada a pasta recycle_bin com todos os ficheiros necessários para funcionar
+**Objetivo:** Verificar se o comando `./recycle_bin.sh search <filename>` apresenta corretamente uma mensagem de erro quando o ficheiro que foi pesquisado não existe no recycle bin. O log deve registar a pesquisa sem resultados.
 
 **Passos:**
 1. Criar vários ficheiros de teste: `echo "file1" > file1.txt` `echo "file2" > file2.txt` `echo "file3" > file3.txt`. Ou em alternativa, utilizar uma pasta com ficheiros e diretórios lá dentro para testar (neste caso em específico foram utilizados ficheiros e diretórios da pasta teste_recyclebin disponibilizada na entrega)
-2. Run: `./recycle_bin.sh delete file1.txt file3.txt dirA dirB`
+2. Executar: `./recycle_bin.sh delete file1.txt file3.txt dirA dirB`
 3. Confirmar que os ficheiros e diretórios foram removidos do diretório original
-4. Run: `./recycle_bin.sh list`
+4. Executar: `./recycle_bin.sh list`
 5. Verificar que os ficheiros e diretórios aparecem com a formatação da tabela
-6. Run: `./recycle_bin.sh search file3`
-7. Run: `./recycle_bin.sh search FILE1 -i`
-8. Observar que o ficheiro foi encontrado com sucesso em ambos os casos e as suas apresentações em tabela estão corretamente formatadas.
+6. Executar: `./recycle_bin.sh search file2`
+7. Observar que não foi possível encontrar o ficheiro com o nome fornecido
+8. Executar: `./recycle_bin.sh search FILE1`
+9. Observar que não foi possível encontrar o ficheiro com o nome fornecido
 
 **Resultado Esperado:**
-- File is moved to ~/.recycle_bin/files/
-- Metadata entry is created
-- Success message is displayed
-- File appears in list output
-**Resultado Atual:** [Fill in after testing]
-**Estado do Teste:** ☐ Pass ☐ Fail
+- Os ficheiros foram movidos para ~/Projeto01_SO_G05P1/recycle_bin/files/.
+- Os ficheiros aparecem listados no recycle bin com as informações ID, NOME, DATA E TAMANHO
+- A tabela de pesquisa aparece vazia para a pesquisa do file2 e aparece uma mensagem a dizer que nenhum ficheiro foi encontrado com esse padrão.
+- A tabela de pesquisa aparece vazia para a pesquisa do FILE1 e aparece uma mensagem a dizer que nenhum ficheiro foi encontrado com esse padrão. Não apareceram as informações do ficheiro "file1.txt" porque a pesquisa foi feita com maiúsculas mostrando que o modo case-insensitive não está ativo por default.
+
+**Resultado Atual:** 
+- Os ficheiros foram movidos para ~/Projeto01_SO_G05P1/recycle_bin/files/.
+- Os ficheiros aparecem listados no recycle bin com as informações ID, NOME, DATA E TAMANHO
+- A tabela de pesquisa aparece vazia para a pesquisa do file2 e aparece uma mensagem a dizer que nenhum ficheiro foi encontrado com esse padrão.
+- A tabela de pesquisa aparece vazia para a pesquisa do FILE1 e aparece uma mensagem a dizer que nenhum ficheiro foi encontrado com esse padrão. Não apareceram as informações do ficheiro "file1.txt" porque a pesquisa foi feita com maiúsculas mostrando que o modo case-insensitive não está ativo por default.
+
+**Estado do Teste:** Pass
+
 **Screenshots:** 
 ![Search for non-existent file](./screenshots/search_for_non_existent_file.png)
 
 ### Test Case 13: Display help information
-**Objetivo:** Verificar se é criada a pasta recycle_bin com todos os ficheiros necessários para funcionar
+**Objetivo:** Verificar se o comando `./recycle_bin.sh help` apresenta corretamente o menu de ajuda com todas as opções disponíveis bem como as respetivas descrições, modos de utilização e exemplos práticos.
+
 **Passos:**
-1. Create test file: `echo "test" > test.txt`
-2. Run: `./recycle_bin.sh delete test.txt`
-3. Verify file is removed from current directory
-4. Run: `./recycle_bin.sh list`
-5. Verify file appears in recycle bin
+1. Executar: `./recycle_bin.sh help`
+2. Observar o menu de ajuda mostrado no terminal
+3. Confirmar que todas as operações estão listadas e documentadas com a formatação correta e a descrição coerente.
+
 **Resultado Esperado:**
-- File is moved to ~/.recycle_bin/files/
-- Metadata entry is created
-- Success message is displayed
-- File appears in list output
-**Resultado Atual:** [Fill in after testing]
-**Estado do Teste:** ☐ Pass ☐ Fail
-**Screenshots:** [If applicable]
+- É apresentado no terminal o menu de ajuda com todas as operações disponíveis e as respetivas descrições, modos de utilização e exemplos práticos
+- A formatação está correta e os resultados legíveis
+- A operação foi registada no log file.
+
+**Resultado Atual:** 
+- É apresentado no terminal o menu de ajuda com todas as operações disponíveis e as respetivas descrições, modos de utilização e exemplos práticos
+- A formatção está correta e os resultados legíveis
+- A operação foi registada no log file.
+
+**Estado do Teste:** Pass
+
+**Screenshots:** 
+![Display help information](./screenshots/display_help_information.png)
+
+### Test Case 14: Show recycle bin statistics
+**Objetivo:** Confirmar que o comando `./recycle_bin.sh statistics` mostra as várias estatísticas detalhadas sobre o recycle bin, incluindo o número de ficheiros, tamanho total, tamanho médio, ficheiro mais antigo e mais recente e percentagem de quota utilizada.
+
+**Passos:**
+1. Criar vários ficheiros de teste: `echo "file1" > file1.txt` `echo "file2" > file2.txt` `echo "file3" > file3.txt`. Ou em alternativa, utilizar uma pasta com ficheiros e diretórios lá dentro para testar (neste caso em específico foram utilizados ficheiros e diretórios da pasta teste_recyclebin disponibilizada na entrega)
+2. Executar: `./recycle_bin.sh delete file1.txt file3.txt dirA dirB`
+3. Confirmar que os ficheiros e diretórios foram removidos do diretório original
+4. Executar: `dd if=/dev/zero of=bigfile1.bin bs=200K count=3`
+5. Executar: `./recycle_bin.sh delete bigfile1.bin` (apenas para adicionar um ficheiro com maior tamanho para se ver a percentagem de quota utilizada)
+6. Executar: `./recycle_bin.sh statistics`
+7. Verificar que as caraterísticas apresentadas refletem o conteúdo atual do recycle bin
+
+**Resultado Esperado:**
+- Os ficheiros foram movidos para ~/Projeto01_SO_G05P1/recycle_bin/files/.
+- Todas as estatísticas são mostradas corretamente com uma boa formatação
+- Devem estar presentes o número total de itens, o número de ficheiros, o número de diretórios, as informações do ficheiro mais antigo, as informações do ficheiro mais recente, o tamanho total utilizado com a formatação legível, o tamanho médio utilizado com formatação legível e a percentagem de quota utilizada.
+- Registar a operação realizada no log
+
+**Resultado Atual:** 
+- Os ficheiros foram movidos para ~/Projeto01_SO_G05P1/recycle_bin/files/.
+- Todas as estatísticas são mostradas corretamente com uma boa formatação
+- Devem estar presentes o número total de itens, o número de ficheiros, o número de diretórios, as informações do ficheiro mais antigo, as informações do ficheiro mais recente, o tamanho total utilizado com a formatação legível, o tamanho médio utilizado com formatação legível e a percentagem de quota utilizada.
+- Registar a operação realizada no log
+
+**Estado do Teste:** Pass
+
+**Screenshots:** 
+![Show Recycle Bin Statistics](./screenshots/show_recyclebin_statistics.png)
+
+### Test Case 15: Automatic cleanup of old files
+**Objetivo:** Confirmar que o comando `./recycle_bin.sh cleanup` elimina corretamente ficheiros que o ultrapassam o período de tenção definido no ficheiro de configuração "config".
+
+**Passos:**
+1. Criar um ficheiro de teste: `echo "file3" > file3.txt`. Ou em alternativa, utilizar uma pasta com ficheiros e diretórios lá dentro para testar (neste caso em específico foram utilizados ficheiros e diretórios da pasta teste_recyclebin disponibilizada na entrega)
+2. Executar: `./recycle_bin.sh delete file3.txt`
+3. Confirmar que os ficheiros e diretórios foram removidos do diretório original
+4. Alterar manualmente a data de eliminação do ficheiro no metadata.db (Forma mais fácil para testar)
+5. Executar: `./recycle_bin.sh list`
+6. Verificar que aparece uma data que excede o período máximo permitido
+7. Executar: `./recycle_bin.sh cleanup`
+8. Confirmar que a limpeza automática foi concluída e o ficheiro foi elimnado com sucesso
+9. Executar: `./recycle_bin.sh list`
+
+
+**Resultado Esperado:**
+- O ficheiro foi movido para ~/Projeto01_SO_G05P1/recycle_bin/files/.
+- Foi apresentada corretamente a listagem desse ficheiro com uma data que excedia o período de retenção máximo.
+- Apareceram as seguintes mensagem de sucesso de remoção do ficheiro: "Limpeza Automática: A remover ficheiros mais antigos segundo o prazo estabelecido 30 dias..." e "Limpeza automática concluída: 1 ficheiros removidos."
+- A operação foi registada no log e a entrada removida do ficheiro metadata.db
+
+**Resultado Atual:** 
+- O ficheiro foi movido para ~/Projeto01_SO_G05P1/recycle_bin/files/.
+- Foi apresentada corretamente a listagem desse ficheiro com uma data que excedia o período de retenção máximo.
+- Apareceram as seguintes mensagem de sucesso de remoção do ficheiro: "Limpeza Automática: A remover ficheiros mais antigos segundo o prazo estabelecido 30 dias..." e "Limpeza automática concluída: 1 ficheiros removidos."
+- A operação foi registada no log e a entrada removida do ficheiro metadata.db
+
+**Estado do Teste:** Pass
+
+**Screenshots:** 
+![Automatic Cleanup of old files](./screenshots/automatic_cleanup_of_old_files.png)
+
+### Test Case 16: Check quota usage
+**Objetivo:** Verificar se o comando `./recycle_bin.sh quota` emite um alerta para avisar que o limite máximo de tamanho definido para o recycle bin foi excedido
+
+**Passos:**
+1. Criar ficheiro de teste grandes
+2. Executar: `dd if=/dev/zero of=large1.bin bs=500K count=1`
+3. Executar: `dd if=/dev/zero of=large2.bin bs=700K count=1`
+4. Executar: `./recycle_bin.sh delete large1.bin large2.bin`
+5. Executar: `./recycle_bin.sh quota`
+6. Verificar que o limite de quota não foi excedido
+7. Definir MAX_SIZE_MB=1 no ficheiro "config" (forma mais fácil para testar a função)
+8. Executar: `./recycle_bin.sh quota`
+9. Observar que o sistema deteta o que o espaço máximo foi atingido ou excedido e executa automaticamente a função auto_cleanup().
+
+
+**Resultado Esperado:**
+- Os ficheiros grandes "large1.bin" e "large2.bin" foram criados e movidos para o recycle bin com sucesso
+- A primeira execução da função check_quota() emitiu a mensagem "O Recycle bin está dentro do limite de 1024 MB." como deveria ser para o tamanho default de 1024 MB.
+- Após ter sido alterada a variável MAX_SIZE_MB para 1 MB e de se executar o comando `./recycle_bin.sh quota` apareceu uma mensagem a indicar que o tamanho total tinha sido excedido e mostrar o tamanho atual
+- Posteriormente a função auto_cleanup foi chamada para tentar limpar os ficheiros mais antigos
+- Todas as operações foram registadas no log
+
+**Resultado Atual:** 
+- Os ficheiros grandes "large1.bin" e "large2.bin" foram criados e movidos para o recycle bin com sucesso
+- A primeira execução da função check_quota() emitiu a mensagem "O Recycle bin está dentro do limite de 1024 MB." como deveria ser para o tamanho default de 1024 MB.
+- Após ter sido alterada a variável MAX_SIZE_MB para 1 MB e de se executar o comando `./recycle_bin.sh quota` apareceu uma mensagem a indicar que o tamanho total tinha sido excedido e mostrar o tamanho atual
+- Posteriormente a função auto_cleanup foi chamada para tentar limpar os ficheiros mais antigos. Como os dois ficheiros foram criados recentemente nenhum ficheiro foi apagado. De qualquer forma o objetivo da função é chamar a função auto_cleanup para "tentar" apagar os ficheiros mais antigos para libertar espaço e não chamar a função empty_recyclebin() para apagar todos os ficheiros dentro da mesma 
+- Todas as operações foram registadas no log
+
+**Estado do Teste:** Pass
+
+**Screenshots:** 
+![Check Quota Usage](./screenshots/check_quota_usage.png)
+
+### Test Case 17: Preview File
+**Objetivo:** Verificar se o comando `./recycle_bin.sh preview <filename>` mostra as primeiras 10 linhas de um ficheiro que existe dentro do Recycle Bin no caso de este se tratar de um ficheiro de texto
+
+**Passos:**
+1. Criar um ficheiro de teste com vários parágrafos. Ou em alternativa, utilizar uma pasta com ficheiros e diretórios lá dentro para testar (neste caso em específico foram utilizados ficheiros e diretórios da pasta teste_recyclebin disponibilizada na entrega)
+2. Executar: `./recycle_bin.sh delete file3.txt`
+3. Confirmar que os ficheiros e diretórios foram removidos do diretório original
+4. Executar: `./recycle_bin.sh list`
+5. Verificar que o ficheiro se encontra no Recycle Bin
+6. Executar: `./recycle_bin.sh preview file3.txt` 
+7. Observar no terminal o conteúdo do ficheiro "file3.txt"
+
+**Resultado Esperado:**
+- O ficheiro "file3.txt" foi criado e movido para o recycle bin com sucesso e aparece listado corretamente
+- O conteúdo do ficheiro é apresentado corretamente no terminal do Linux
+- A operação foi registada no log
+
+**Resultado Atual:** 
+- O ficheiro "file3.txt" foi criado e movido para o recycle bin com sucesso e aparece listado corretamente
+- O conteúdo do ficheiro é apresentado corretamente no terminal do Linux
+- A operação foi registada no log
+
+**Estado do Teste:** Pass
+
+**Screenshots:** 
+![Preview File](./screenshots/preview_file.png)
 
 ## Edge cases tested
 
-## Edge Case Test 1: Delete non-existent file
+### Edge Case Test 1: Delete non-existent file
 **Objetivo:** Verificar se o sistema lida corretamente com a tentativa de apagar um ficheiro que não existe
 
 **Passos:**
@@ -404,7 +544,7 @@ O nosso plano de testes consiste em testar as funções principais e obrigatóri
 ![delete_nonexistent_file](./screenshots/delete_nonexistent_file.png) 
 
 
-## Edge Case Test 2: Delete file without permissions
+### Edge Case Test 2: Delete file without permissions
 **Objetivo:** Garantir que o sistema não apaga ficheiros localizados em diretórios sem permissões de escrita.
 
 **Passos:**
@@ -429,7 +569,7 @@ O nosso plano de testes consiste em testar as funções principais e obrigatóri
 ![delete_nonexistent_file](./screenshots/delete_file_sem_permissoes.png) 
 
 
-## Edge Case Test 3: Restore when original location has same filename
+### Edge Case Test 3: Restore when original location has same filename
 **Objetivo:** Validar resolução de conflitos de nome durante o restore.
 
 **Passos:**
@@ -459,7 +599,7 @@ O nosso plano de testes consiste em testar as funções principais e obrigatóri
 ![same_filename](./screenshots/same_filename.png) 
 
 
-## Edge Case Test 4: Restore with ID that doesn’t exist
+### Edge Case Test 4: Restore with ID that doesn’t exist
 **Objetivo:** Verificar se o sistema lida corretamente com tentativas de restaurar IDs inexistentes.
 
 **Passos:**
@@ -479,7 +619,7 @@ O nosso plano de testes consiste em testar as funções principais e obrigatóri
 ![restore_nonexistent_id](./screenshots/restore_nonexistent_id.png) 
 
 
-## Edge Case Test 5: Handle filenames with spaces
+### Edge Case Test 5: Handle filenames with spaces
 **Objetivo:** Verificar se o sistema apaga e lista corretamente ficheiros com espaços no nome.
 
 **Passos:**
@@ -506,7 +646,7 @@ O nosso plano de testes consiste em testar as funções principais e obrigatóri
 ![filenames_spaces](./screenshots/filenames_spaces.png)
 
 
-## Edge Case Test 6: Handle very long filenames (255+ characters)
+### Edge Case Test 6: Handle very long filenames (255+ characters)
 **Objetivo:** Validar a eliminação de ficheiros com nome muito longo
 
 **Passos:**
@@ -530,7 +670,7 @@ O nosso plano de testes consiste em testar as funções principais e obrigatóri
 ![long_filename](./screenshots/long_filename.png)
 
 
-## Edge Case Test 7: Handle very large files (>100MB)
+### Edge Case Test 7: Handle very large files (>100MB)
 **Objetivo:** Confirmar comportamento ao apagar ficheiros grandes e validação de espaço.
 
 **Passos:**
@@ -552,7 +692,7 @@ O nosso plano de testes consiste em testar as funções principais e obrigatóri
 ![very_large](./screenshots/very_large.png)
 
 
-## Edge Case Test 8: Delete files from different directories
+### Edge Case Test 8: Delete files from different directories
 **Objetivo:** Verificar eliminação simultânea de ficheiros em diretórios distintos. 
 
 **Passos:**
@@ -578,7 +718,31 @@ O nosso plano de testes consiste em testar as funções principais e obrigatóri
 ![diferent_directories](./screenshots/diferent_directories.png)
 
 
-## Edge Case Test 9: Handle hidden files (starting with .)
+### Edge Case Test 9: Handle hidden files (starting with .)
+**Objetivo:** Confirmar que ficheiros ocultos são tratados corretamente.
+
+**Passos:**
+1. Criar o test file ao executar: `echo hidden > .secret`
+2. Executar: `./recycle_bin.sh delete .secret`
+3. Executar: `./recycle_bin.sh list` para verificar a presença do file no metadata
+
+**Resultado Esperado:**
+- O ficheiro .secret é movido para o recycle bin
+- Entrada criada em metadata.db
+- O comando list apresenta o item oculto corretamente
+
+**Resultado Obtido:**
+- O ficheiro .secret é movido para o recycle bin
+- Entrada criada em metadata.db
+- O comando list apresenta o item oculto corretamente
+
+**Estado do Teste:** Pass
+
+**Screenshots:** 
+![ocultos](./screenshots/ocultos.png)
+
+
+### Edge Case Test 10: Handle hidden files (starting with .)
 **Objetivo:** Confirmar que ficheiros ocultos são tratados corretamente.
 
 **Passos:**
@@ -603,32 +767,7 @@ O nosso plano de testes consiste em testar as funções principais e obrigatóri
 
 
 
-## Edge Case Test 10: Handle hidden files (starting with .)
-**Objetivo:** Confirmar que ficheiros ocultos são tratados corretamente.
-
-**Passos:**
-1. Criar o test file ao executar: `echo hidden > .secret`
-2. Executar: `./recycle_bin.sh delete .secret`
-3. Executar: `./recycle_bin.sh list` para verificar a presença do file no metadata
-
-**Resultado Esperado:**
-- O ficheiro .secret é movido para o recycle bin
-- Entrada criada em metadata.db
-- O comando list apresenta o item oculto corretamente
-
-**Resultado Obtido:**
-- O ficheiro .secret é movido para o recycle bin
-- Entrada criada em metadata.db
-- O comando list apresenta o item oculto corretamente
-
-**Estado do Teste:** Pass
-
-**Screenshots:** 
-![ocultos](./screenshots/ocultos.png)
-
-
-
-## Edge Case Test 10: Restore files to read-only directories
+### Edge Case Test 11: Restore files to read-only directories
 **Objetivo:** Garantir que o sistema deteta falta de permissões ao restaurar.
 
 **Passos:**
@@ -653,7 +792,7 @@ O nosso plano de testes consiste em testar as funções principais e obrigatóri
 
 
 
-## Edge Case Test 11: Restore files to read-only directories
+### Edge Case Test 12: Restore files to read-only directories
 **Objetivo:** Garantir que o sistema deteta falta de permissões ao restaurar.
 
 **Passos:**
@@ -681,10 +820,82 @@ O nosso plano de testes consiste em testar as funções principais e obrigatóri
 
 ## Error Handling
 
+### Error Handling Test 1: Invalid command line arguments
+**Objetivo:** Detetar quando são introduzidos argumentos inválidos como comandos no sistema.
+
+**Passos:**
+1. Executar: `./recycle_bin.sh evaluate`
+2. Verificar que aparece uma mensagem de erro no ecrâ e a sugestão para usar o comando `./recycle_bin.sh help`
+
+**Resultado Esperado:**
+- Apareceu a mensagem "Opção Inválida. Utilize 'recycle_bin.sh help' para obter informações de utilização"
+
+**Resultado Obtido:**
+- Apareceu a mensagem "Opção Inválida. Utilize 'recycle_bin.sh help' para obter informações de utilização"
+
+**Estado do Teste:** Pass
+
+**Screenshots:** 
+![Invalid command line arguments](./screenshots/invalid_command_line_arguments.png)
+
+### Error Handling Test 2: Missing required parameters
+**Objetivo:** Detetar quando falta introduzir um determinado parâmetro obrigatório na execução de uma das funções
+
+**Passos:**
+1. Executar: `./recycle_bin.sh preview`
+2. Verificar que aparece uma mensagem de erro no ecrâ
+
+**Resultado Esperado:**
+- Apareceu a mensagem "Deve ser inserido o id ou o nome do ficheiro no recycle bin como argumento."
+
+**Resultado Obtido:**
+- Apareceu a mensagem "Deve ser inserido o id ou o nome do ficheiro no recycle bin como argumento."
+
+**Estado do Teste:** Pass
+
+**Screenshots:** 
+![Missing Required Parameters](./screenshots/missing_required_parameters.png)
+
+### Error Handling Test 3: Permission denied error
+**Objetivo:** Detetar quando se tenta apagar um ficheiro sem permissões para o Recycle Bin 
+
+**Passos:**
+1. Criar um ficheiro de teste sem permissões. Ou em alternativa, utilizar uma pasta com ficheiros e diretórios lá dentro para testar (neste caso em específico foram utilizados ficheiros e diretórios da pasta teste_recyclebin disponibilizada na entrega)
+2. Executar: `./recycle_bin.sh delete file2.txt`
+3. Verificar que aparece uma mensagem de erro no ecrâ
+
+**Resultado Esperado:**
+- Apareceu a mensagem "Erro: Sem permissões suficientes para apagar '/home/david_monteiro/teste_recyclebin/file2.txt'."
+
+**Resultado Obtido:**
+- Apareceu a mensagem "Erro: Sem permissões suficientes para apagar '/home/david_monteiro/teste_recyclebin/file2.txt'."
+
+**Estado do Teste:** Pass
+
+**Screenshots:** 
+![Permission Denied Error](./screenshots/permission_denied_error.png)
+
+### Error Handling Test 4: Attempting to delete recycle bin itself
+**Objetivo:** Mostrar uma mensagem de erro quando se tenta apagar o próprio recycle bin 
+
+**Passos:**
+1. Executar: `./recycle_bin.sh delete recycle_bin`
+3. Verificar que aparece uma mensagem de erro no ecrâ
+
+**Resultado Esperado:**
+- Apareceu a mensagem "O ficheiro/diretório 'recycle_bin' não existe e não pode ser apagado."
+
+**Resultado Obtido:**
+- Apareceu a mensagem "O ficheiro/diretório 'recycle_bin' não existe e não pode ser apagado."
+
+**Estado do Teste:** Pass
+
+**Screenshots:** 
+![Attempting to delete recycle bin itself](./screenshots/attempting_to_delete_recycle_bin_itself.png)
 
 ## Performance Tests
 
-## Performance Test 1 : Delete 100+ files and List them
+### Performance Test 1 : Delete 100+ files and List them
 **Objetivo** Avaliar o desempenho e estabilidade do sistema ao apagar um grande número de ficheiros num único comando.
 
 **Passos**
@@ -713,7 +924,7 @@ O nosso plano de testes consiste em testar as funções principais e obrigatóri
 ![delete_100](./screenshots/list_100.png) 
 
 
-## Performance Test 2 : Search in large metadata file
+### Performance Test 2 : Search in large metadata file
 **Objetivo** Verificar a eficiência do comando search com um ficheiro metadata.db muito extenso.
 
 **Passos**
@@ -740,7 +951,7 @@ O nosso plano de testes consiste em testar as funções principais e obrigatóri
 ![search_100](./screenshots/search_100.png) 
 
 
-## Performance Test 3 : Restore from bin with many items
+### Performance Test 3 : Restore from bin with many items
 **Objetivo** Testar a capacidade do sistema para restaurar um ficheiro específico quando a recycle bin contém centenas de itens.
 
 **Passos**
@@ -767,7 +978,14 @@ O nosso plano de testes consiste em testar as funções principais e obrigatóri
 ![restore_1_in_100](./screenshots/restore_100.png) 
 
 ## Test coverage summary
-TODOS os testes apresentados no capítulo 6 do complete project proposal estão presentes neste documento, à excepção dos testes:
+TODOS os testes apresentados no capítulo 6 do complete project proposal estão presentes neste documento mais os testes das funções adicionais que colocamos, à excepção dos testes:
 
+###Edge Cases
 - Handle filenames with special characters (!@#$%^&*())
 - Handle symbolic links
+
+###Error Handling
+- Corrupted metadata file
+- Insufficient disk space 
+- Concurrent operations (run two instances)
+
