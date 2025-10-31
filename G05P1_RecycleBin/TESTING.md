@@ -739,60 +739,9 @@ O nosso plano de testes consiste em testar as funções principais e obrigatóri
 **Estado do Teste:** Pass
 
 **Screenshots:** 
-![ocultos](./screenshots/ocultos.png)
+![ocultos](./screenshots/oculto.png)
 
-
-### Edge Case Test 10: Handle hidden files (starting with .)
-**Objetivo:** Confirmar que ficheiros ocultos são tratados corretamente.
-
-**Passos:**
-1. Criar o test file ao executar: `echo hidden > .secret`
-2. Executar: `./recycle_bin.sh delete .secret`
-3. Executar: `./recycle_bin.sh list` para verificar a presença do file no metadata
-
-**Resultado Esperado:**
-- O ficheiro .secret é movido para o recycle bin
-- Entrada criada em metadata.db
-- O comando list apresenta o item oculto corretamente
-
-**Resultado Obtido:**
-- O ficheiro .secret é movido para o recycle bin
-- Entrada criada em metadata.db
-- O comando list apresenta o item oculto corretamente
-
-**Estado do Teste:** Pass
-
-**Screenshots:** 
-![ocultos](./screenshots/ocultos.png)
-
-
-
-### Edge Case Test 11: Restore files to read-only directories
-**Objetivo:** Garantir que o sistema deteta falta de permissões ao restaurar.
-
-**Passos:**
-1. Criar o test file ao executar: `echo hidden > .secret`
-2. Executar: `./recycle_bin.sh delete .secret`
-3. Executar: `./recycle_bin.sh list` para verificar a presença do file no metadata
-
-**Resultado Esperado:**
-- O ficheiro .secret é movido para o recycle bin
-- Entrada criada em metadata.db
-- O comando list apresenta o item oculto corretamente
-
-**Resultado Obtido:**
-- O ficheiro .secret é movido para o recycle bin
-- Entrada criada em metadata.db
-- O comando list apresenta o item oculto corretamente
-
-**Estado do Teste:** Pass
-
-**Screenshots:** 
-![ocultos](./screenshots/ocultos.png)
-
-
-
-### Edge Case Test 12: Restore files to read-only directories
+### Edge Case Test 10: Restore files to read-only directories
 **Objetivo:** Garantir que o sistema deteta falta de permissões ao restaurar.
 
 **Passos:**
@@ -836,7 +785,7 @@ O nosso plano de testes consiste em testar as funções principais e obrigatóri
 **Estado do Teste:** Pass
 
 **Screenshots:** 
-![Invalid command line arguments](./screenshots/invalid_command_line_arguments.png)
+![Invalid command line arguments](./screenshots/invalid_comand_line_arguments.png)
 
 ### Error Handling Test 2: Missing required parameters
 **Objetivo:** Detetar quando falta introduzir um determinado parâmetro obrigatório na execução de uma das funções
@@ -891,7 +840,7 @@ O nosso plano de testes consiste em testar as funções principais e obrigatóri
 **Estado do Teste:** Pass
 
 **Screenshots:** 
-![Attempting to delete recycle bin itself](./screenshots/attempting_to_delete_recycle_bin_itself.png)
+![Attempting to delete recycle bin itself](./screenshots/atempting_to_delete_recycle_bin_itself.png)
 
 ## Performance Tests
 
@@ -980,11 +929,11 @@ O nosso plano de testes consiste em testar as funções principais e obrigatóri
 ## Test coverage summary
 TODOS os testes apresentados no capítulo 6 do complete project proposal estão presentes neste documento mais os testes das funções adicionais que colocamos, à excepção dos testes:
 
-###Edge Cases
+###Edge Cases###
 - Handle filenames with special characters (!@#$%^&*())
 - Handle symbolic links
 
-###Error Handling
+###Error Handling###
 - Corrupted metadata file
 - Insufficient disk space 
 - Concurrent operations (run two instances)

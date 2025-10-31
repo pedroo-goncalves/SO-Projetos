@@ -14,7 +14,7 @@ Este projeto teve como objetivo o desenvolvimento de um sistema de Recycle Bin p
 
 ## Installation
 
-[Atenção: Na documentação todas as referências à pasta "SO-2526-T1-P1-G05-126463-125793" aparecem como "Projeto01_SO_G05P1", uma vez que só recebemos o formato da nomenclatura da pasta no próprio dia da entrega"]
+[Atenção: Na documentação todas as referências à pasta "SO-2526-T1-P1-G05-126463-125793" aparecem como "Projeto01_SO_G05P1", uma vez que só recebemos o formato da nomenclatura da pasta no próprio dia da entrega". Por esse mesmo motivo é que nas regras de instalação colocámos um passo para mudar o nome da pasta, para que tudo funcione como esperado]
 
 [1] - Fazer o download da pasta .zip enviada pelo elearning. Posteriormente deverá movê-la da secção "Downloads"/"Transferências" para a secção "HOME"/"Pasta Pessoal".
 

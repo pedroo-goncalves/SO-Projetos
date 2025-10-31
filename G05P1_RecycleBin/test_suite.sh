@@ -1,7 +1,7 @@
 #!/bin/bash
 # ===========================================================
 # Test Suite for Linux Recycle Bin System
-# Authors: Pedro Gonçalves & David Monteiro
+# Authors: Pedro Miguel Morais Gonçalves (126463) & David Saraiva Monteiro (125793)
 # ===========================================================
 
 SCRIPT="./recycle_bin.sh"

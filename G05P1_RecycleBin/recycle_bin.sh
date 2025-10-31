@@ -65,14 +65,6 @@ initialize_recyclebin() {
     	echo "$(date '+%Y-%m-%d %H:%M:%S') - Recycle bin inicializado." >> "$LOG_FILE"
     fi
     
-
-	
-
-	# Ensure log file exists
-    if [ ! -f "$LOG_FILE" ]; then
-        touch "$LOG_FILE"
-    fi
-    
     # Initialize log file
     echo "$(date '+%Y-%m-%d %H:%M:%S') - Recycle bin inicializado." >> "$LOG_FILE"
 }
@@ -658,7 +650,7 @@ search_recycled() {
 
 		# If there's a match, print the formatted line and mark as found
 		if [ $? -eq 0 ]; then
-			printf "%-20.20s %-30.30s %-80.80s %-20.20s %10s %-10.10s\n" \ "$id" "$name" "$path" "$date" "$size" "$type"
+			printf "%-20.20s %-30.30s %-80.80s %-20.20s %10s %-10.10s\n" "$id" "$name" "$path" "$date" "$size" "$type"
 			found=true
 		fi
 
@@ -746,7 +738,7 @@ show_statistics() {
     printf "%-15s : %-15s\n" "Tamanho total" "$formatted_total_size"
     printf "%-15s : %-15s\n" "Tamanho médio" "$formatted_average_size"
     printf "%-15s : %-15s\n" "Quota usada" "$quota_percent %"
-	echo -e "${GREEN}=============================================================={NC}"
+	echo -e "${GREEN}==============================================================${NC}"
 	echo ""
 
 	# Log operation
